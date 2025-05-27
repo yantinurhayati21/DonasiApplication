@@ -1,0 +1,164 @@
+CREATE TABLE users (
+    id_user SERIAL PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password TEXT,
+    role VARCHAR(20) CHECK (role IN ('Donatur', 'Pengurus', 'Pimpinan', 'Bendahara')) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE donatur (
+    id_donatur SERIAL PRIMARY KEY,
+    id_user INT REFERENCES users(id_user) ON DELETE CASCADE,
+    nama VARCHAR(100),
+    email VARCHAR(100),
+    alamat TEXT,
+    no_telepon VARCHAR(20),
+    jenis_donatur VARCHAR(20) CHECK (jenis_donatur IN ('Tetap', 'Tidak Tetap')),
+    status_aktif BOOLEAN,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE donasi (
+    id_donasi SERIAL PRIMARY KEY,
+    id_donatur INT REFERENCES donatur(id_donatur) ON DELETE SET NULL,
+    tanggal_donasi DATE,
+    nominal NUMERIC(12,2),
+    status_donasi VARCHAR(20) CHECK (status_donasi IN ('Checking', 'Done')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE doa (
+    id_doa SERIAL PRIMARY KEY,
+    nama_doa VARCHAR(100),
+    isi_doa TEXT
+);
+
+CREATE TABLE doa_donasi (
+    id SERIAL PRIMARY KEY,
+    id_donasi INT REFERENCES donasi(id_donasi) ON DELETE CASCADE,
+    id_doa INT REFERENCES doa(id_doa) ON DELETE CASCADE
+);
+
+CREATE TABLE riwayat_donasi (
+    id_riwayat SERIAL PRIMARY KEY,
+    id_donasi INT REFERENCES donasi(id_donasi) ON DELETE CASCADE,
+    id_donatur INT REFERENCES donatur(id_donatur) ON DELETE CASCADE,
+    tanggal_donasi DATE,
+    nominal NUMERIC(12,2)
+);
+
+CREATE TABLE pengurus (
+    id_pengurus SERIAL PRIMARY KEY,
+    id_user INT REFERENCES users(id_user) ON DELETE CASCADE, 
+    nama VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    no_hp VARCHAR(20) NOT NULL,
+    jabatan VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE pengajuan (
+    id_pengajuan SERIAL PRIMARY KEY,
+    id_pengurus INT REFERENCES users(id_user) ON DELETE CASCADE,
+    tanggal DATE NOT NULL,
+    nominal_pengajuan NUMERIC(12,2) NOT NULL,
+    status_pengajuan VARCHAR(20) CHECK (status_pengajuan IN ('menunggu_bendahara', 'menunggu_pimpinan', 'diterima', 'ditolak')) DEFAULT 'menunggu_bendahara',
+    approval_from_pimpinan VARCHAR(20) CHECK (approval_from_pimpinan IN ('diterima', 'ditolak', 'menunggu')) DEFAULT 'menunggu',
+    approved_from_bendahara VARCHAR(20) CHECK (approved_from_bendahara IN ('diterima', 'ditolak', 'menunggu')) DEFAULT 'menunggu',
+    pengeluaran_actual INT, -- nilai aktual pengeluaran keseluruhan
+    file_bukti TEXT, -- file bukti pengeluaran untuk keseluruhan
+    deskripsi TEXT, -- catatan tambahan untuk pengajuan keseluruhan
+    status_bukti_pengeluaran VARCHAR(20) 
+        CHECK (status_bukti_pengeluaran IN ('menunggu', 'diterima', 'ditolak')) DEFAULT 'menunggu',
+    alasan_penolakan TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE kategori_pengeluaran (
+    id_kategori SERIAL PRIMARY KEY,
+    nama_kategori VARCHAR(100) NOT NULL
+);
+
+
+CREATE TABLE pengeluaran (
+    id_pengeluaran SERIAL PRIMARY KEY,
+    id_pengajuan INT REFERENCES pengajuan(id_pengajuan) ON DELETE CASCADE,
+    id_kategori INT REFERENCES kategori_pengeluaran(id_kategori) ON DELETE CASCADE,
+    nama_item VARCHAR(100) NOT NULL,
+    total_harga INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE laporan_keuangan (
+    id_laporan SERIAL PRIMARY KEY,
+    nama_file VARCHAR(255),
+    path_file TEXT,
+    total_donasi NUMERIC(12,2),
+    total_pengeluaran NUMERIC(12,2),
+    saldo_akhir NUMERIC(12,2),
+    tanggal_upload DATE,
+    periode_awal DATE,
+    periode_akhir DATE
+);
+
+CREATE TABLE notifikasi (
+    id_notif SERIAL PRIMARY KEY,
+    tipe VARCHAR(50),
+    id_user INT REFERENCES users(id_user) ON DELETE CASCADE,
+    judul VARCHAR(100),
+    pesan TEXT,
+    status VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    read BOOLEAN DEFAULT FALSE
+);
+
+
+
+INSERT INTO users (email, password, role) 
+VALUES 
+('budi@example.com', 'hashedpassword123', 'Donatur'),
+('siti@example.com', 'hashedpassword123', 'Donatur'),
+('pengurus1@example.com', 'hashedpassword123', 'Pengurus'),
+('pimpinan@example.com', 'hashedpassword123', 'Pimpinan'),
+('bendahara@example.com', 'hashedpassword123', 'Bendahara');
+
+INSERT INTO donatur (id_user, nama, email,  alamat, no_telepon, jenis_donatur, status_aktif) 
+VALUES 
+(1, 'Budi Santoso', 'budi@example.com', 'Jl. Merdeka No.1', '081234567890', 'Tetap', true),
+(2, 'Siti Aminah', 'siti@example.com', 'Jl. Pelajar No.2', '081234567891', 'Tidak Tetap', true);
+
+INSERT INTO pengurus (id_user, nama, email, no_hp, jabatan) 
+VALUES 
+(3, 'Ust. Ahmad', 'pengurus1@example.com', '081234567890', 'Pengurus Keuangan');
+
+INSERT INTO doa (nama_doa, isi_doa) 
+VALUES 
+('Doa Kesehatan', 'Ya Allah, berikan kami kesehatan jasmani dan rohani.'),
+('Doa Kelancaran Rezeki', 'Ya Allah, lancarkan rezeki kami, berikanlah keberkahan dalam segala usaha kami.'),
+('Doa Kebahagiaan', 'Ya Allah, berikan kebahagiaan, ketenangan, dan kedamaian dalam hidup kami.');
+
+INSERT INTO kategori_pengeluaran (nama_kategori) VALUES
+('Alat Tulis'),
+('Kebutuhan Masak'),
+('Kesehatan'),
+('Perlengkapan Asrama'),
+('Kegiatan Pesantren'),
+('Utilitas'),
+('Lainnya');
+
+SELECT email, password, role FROM users WHERE email = 'bnd@iyd.com';
+select * from doa
+
+CREATE TABLE push_subscriptions (
+    id SERIAL PRIMARY KEY,
+    id_user INT NOT NULL, -- referensi user yang subscribe
+    endpoint TEXT NOT NULL,
+    keys_auth TEXT NOT NULL,
+    keys_p256dh TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
