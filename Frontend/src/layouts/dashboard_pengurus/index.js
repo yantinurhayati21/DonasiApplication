@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import PeopleIcon from "@mui/icons-material/People";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalance";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import Grid from "@mui/material/Grid";
 import MDBox from "components/MDBox";
@@ -142,7 +142,7 @@ function PengurusDashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="primary"
-                icon={<AccountBalanceIcon />}
+                icon={<AccountBalanceWalletIcon />}
                 title="Saldo Sekarang"
                 count={formatRupiah(dashboardData.saldo)} // Format Rp
                 percentage={{

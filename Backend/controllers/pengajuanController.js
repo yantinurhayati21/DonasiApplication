@@ -328,7 +328,7 @@ const approvalfromPimpinan = async (req, res) => {
     // );
     await Notification.updateNotificationsToRead(id_pengajuan, pimpinan.id_user);
 
-    io.emit("pengajuan-diterima-ditolak", {
+    io.emit("pengajuan-diterima-pimpinan", {
       id_pengajuan,
       pesan: `Pengajuan dengan ID ${id_pengajuan} telah disetujui/ditolak oleh Pimpinan.`,
       id_bendahara: bendahara.id_user, // ID bendahara
@@ -362,7 +362,7 @@ const getNotifications = async (req, res) => {
 const updatePengajuan = async (req, res) => {
   const { id_pengajuan, jumlah_pengeluaran, deskripsi, nama_act, harga_act } =
     req.body;
-  const file = req.file ? req.file.path : null; // Menyimpan path file yang diupload
+  const file = req.file ? `/uploads/${req.file.filename}` : null;
 
   try {
     const pengajuan = await Pengajuan.update(
@@ -395,6 +395,23 @@ const updatePengajuan = async (req, res) => {
   }
 };
 export const uploadFile = upload.single("file_bukti");
+
+// Status Bukti Pengajuan
+const handleUpdateStatusBukti = async (req, res) => {
+  const { id_pengajuan } = req.params;
+  const { status_bukti } = req.body;
+  try {
+    const updatedPengajuan = await Pengajuan.updateStatusBukti(
+      id_pengajuan,
+      status_bukti
+    );
+    res.status(200).json(updatedPengajuan);
+  } catch (error) {
+    console.error("Error updating status bukti:", error);
+    res.status(500).json({ message: "Gagal memperbarui status bukti pengajuan" });
+  }
+};
+
 export {
   createPengajuanWithDetail,
   loginBendahara,
@@ -406,4 +423,5 @@ export {
   approvalfromBendahara,
   getNotifications,
   updatePengajuan,
+  handleUpdateStatusBukti
 };

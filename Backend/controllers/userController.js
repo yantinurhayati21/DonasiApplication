@@ -126,6 +126,7 @@ export const loginUser = async (req, res) => {
       .json({
         token,
         role: user.role,
+        nama: tipeDonatur ? tipeDonatur.nama : null,
         id_user: user.id_user,
         tipeDonatur: user.role === "Donatur"
           ? tipeDonatur.jenis_donatur

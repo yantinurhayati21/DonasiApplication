@@ -28,30 +28,29 @@ const getAllDonasi = async (req, res) => {
 
 // ✅ Get donasi by ID
 const getDonasiById = async (req, res) => {
-  const { id } = req.params;
+  const id = parseInt(req.params.id, 10);
+  if (isNaN(id)) {
+    return res.status(400).json({
+      success: false,
+      message: "ID donasi harus berupa angka",
+    });
+  }
 
   try {
     const donasi = await Donasi.getById(id);
-
-    if (!donasi) {
-      return res.status(404).json({
-        status: "error",
-        message: "Donasi tidak ditemukan",
-      });
-    }
-
     res.status(200).json({
-      status: "success",
+      success: true,
       data: donasi,
     });
   } catch (error) {
-    console.error("Error fetching donasi by ID:", error);
     res.status(500).json({
-      status: "error",
-      message: "Gagal mengambil data donasi",
+      success: false,
+      message: "Gagal mengambil donasi",
+      error: error.message,
     });
   }
 };
+
 
 // ✅ Payment donasi via Midtrans
 const paymentDonasi = async (req, res) => {
@@ -268,6 +267,25 @@ const updateStatusDonasi = async (req, res) => {
   }
 };
 
+const getAllDonasiforBendahara = async (req, res) => {
+  try {
+    const data = await Donasi.getAllDonasiforBendahara();
+    res.status(200).json({
+      success: true,
+      message: 'Berhasil mengambil data donasi',
+      data: data
+    });
+  } catch (error) {
+    console.error('Error saat mengambil data donasi:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengambil data donasi',
+      error: error.message
+    });
+  }
+};
+
+
 export {
   getAllDonasi,
   getDonasiById,
@@ -275,5 +293,6 @@ export {
   createDonasiTidakTetap,
   deleteDonasi,
   paymentDonasi,
-  updateStatusDonasi
+  updateStatusDonasi,
+  getAllDonasiforBendahara
 };

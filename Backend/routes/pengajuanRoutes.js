@@ -10,7 +10,8 @@ import {
   approvalfromPimpinan,
   getNotifications,
   updatePengajuan,
-  uploadFile
+  uploadFile,
+  handleUpdateStatusBukti
 } from "../controllers/pengajuanController.js";
 
 const router = express.Router();
@@ -25,5 +26,6 @@ router.delete("/:id", deletePengajuan);
 router.put("/bendahara/:id", approvalfromBendahara);
 router.put("/pimpinan/:id", approvalfromPimpinan);
 router.put("/:id", uploadFile,updatePengajuan);
+router.put("/update-status-bukti/:id_pengajuan", handleUpdateStatusBukti);
 
 export default router;

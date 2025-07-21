@@ -83,8 +83,7 @@ export default function App() {
             route.key === "donasi" ||
             route.key === "sign-in" ||
             route.key === "sign-up" ||
-            route.key === "paymentGateway" ||
-            route.key === "tables"
+            route.key === "paymentGateway"
         )
       );
       return;
@@ -100,7 +99,8 @@ export default function App() {
           (route) =>
             route.key === "donasi" ||
             route.key === "dashboard_donatur" ||
-            route.key === "paymentGateway"
+            route.key === "paymentGateway" ||
+            route.key === "donasi-bendahara"
         );
         break;
 
@@ -108,9 +108,9 @@ export default function App() {
         filteredRoutes = routes.filter(
           (route) =>
             route.key === "dashboard_bendahara" ||
-            route.key === "billing" ||
-            route.key === "pengajuan-pengeluaran" ||
-            route.key === "list_pengajuan_bendahara"
+            route.key === "list_pengajuan_bendahara" ||
+            route.key === "donasi-bendahara" ||
+            route.key === "laporan-donasi"
         );
         break;
 
@@ -118,7 +118,6 @@ export default function App() {
         filteredRoutes = routes.filter(
           (route) =>
             route.key === "dashboard_pimpinan" ||
-            route.key === "tables" ||
             route.key === "notifications" ||
             route.key === "list_pengajuan_pimpinan"
         );

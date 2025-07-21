@@ -131,55 +131,53 @@ function DashboardNavbar({ absolute, light, isMini }) {
     >
       <Toolbar sx={(theme) => navbarContainer(theme)}>
         <MDBox color="inherit" mb={{ xs: 1, md: 0 }} sx={(theme) => navbarRow(theme, { isMini })}>
-          <Breadcrumbs icon="home" title={route[route.length - 1]} route={route} light={light} />
+          <Breadcrumbs
+            icon="home"
+            title={route[route.length - 1]}
+            route={route}
+            light={light}
+            sx={{ fontSize: "1.5rem" }} // Memperbesar ukuran font pada breadcrumbs
+          />
         </MDBox>
-        {/* {isMini ? null : (
+        {isMini ? null : (
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
-            <MDBox pr={1}>
-              <MDInput label="Search here" />
-            </MDBox>
+            <p style={{ textTransform: "capitalize" }}>
+              Hello,{" "}
+              {localStorage.getItem("role") === "Donatur"
+                ? localStorage.getItem("nama")
+                : localStorage.getItem("role")}
+              !
+            </p>
             <MDBox color={light ? "white" : "inherit"}>
               <Link to="/authentication/sign-in/basic">
-                <IconButton sx={navbarIconButton} size="small" disableRipple>
-                  <Icon sx={iconsStyle}>account_circle</Icon>
+                <IconButton
+                  sx={{ ...navbarIconButton, fontSize: "2rem", padding: "12px" }}
+                  size="small"
+                  disableRipple
+                >
+                  <Icon sx={{ ...iconsStyle, fontSize: "2rem" }}>account_circle</Icon>
                 </IconButton>
               </Link>
               <IconButton
+                sx={{
+                  ...navbarIconButton,
+                  fontSize: "2rem", // Memperbesar ukuran ikon tombol
+                  padding: "12px", // Menambah padding untuk memperbesar tombol
+                }}
                 size="small"
                 disableRipple
                 color="inherit"
-                sx={navbarMobileMenu}
-                onClick={handleMiniSidenav}
-              >
-                <Icon sx={iconsStyle} fontSize="medium">
-                  {miniSidenav ? "menu_open" : "menu"}
-                </Icon>
-              </IconButton>
-              <IconButton
-                size="small"
-                disableRipple
-                color="inherit"
-                sx={navbarIconButton}
-                onClick={handleConfiguratorOpen}
-              >
-                <Icon sx={iconsStyle}>settings</Icon>
-              </IconButton>
-              <IconButton
-                size="small"
-                disableRipple
-                color="inherit"
-                sx={navbarIconButton}
                 aria-controls="notification-menu"
                 aria-haspopup="true"
                 variant="contained"
                 onClick={handleOpenMenu}
               >
-                <Icon sx={iconsStyle}>notifications</Icon>
+                <Icon sx={{ ...iconsStyle, fontSize: "2rem" }}>notifications</Icon>
               </IconButton>
               {renderMenu()}
             </MDBox>
           </MDBox>
-        )} */}
+        )}
       </Toolbar>
     </AppBar>
   );

@@ -17,6 +17,9 @@ import {
 } from "@mui/material";
 import { AddCircleOutline, RemoveCircleOutline } from "@mui/icons-material";
 import axios from "axios";
+import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import Footer from "examples/Footer";
 
 const PengajuanForm = () => {
   const [tanggal, setTanggal] = useState("");
@@ -113,151 +116,156 @@ const PengajuanForm = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Card sx={{ p: 3, boxShadow: 2 }}>
-        <Typography variant="h4" gutterBottom sx={{ color: "#3f51b5", fontWeight: "bold" }}>
-          Form Pembuatan Pengajuan
-        </Typography>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Tanggal Pengajuan"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-                value={tanggal}
-                onChange={(e) => setTanggal(e.target.value)}
-                required
-                sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Nominal Pengajuan"
-                type="number"
-                fullWidth
-                value={nominalPengajuan}
-                onChange={(e) => setNominalPengajuan(e.target.value)}
-                required
-                sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
-              />
-            </Grid>
-          </Grid>
-
-          <Typography variant="h6" gutterBottom sx={{ color: "#3f51b5", fontWeight: "bold" }}>
-            Daftar Pengeluaran
+    <DashboardLayout>
+      <DashboardNavbar />
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Card sx={{ p: 3, boxShadow: 2 }}>
+          <Typography variant="h4" gutterBottom sx={{ color: "#3f51b5", fontWeight: "bold" }}>
+            Form Pembuatan Pengajuan
           </Typography>
-
-          {daftarPengeluaran.map((item, index) => (
-            <Paper key={index} variant="outlined" sx={{ p: 3, mb: 2, boxShadow: 2 }}>
-              <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    label="Nama Item"
-                    value={item.nama_item}
-                    onChange={(e) => handlePengeluaranChange(index, "nama_item", e.target.value)}
-                    fullWidth
-                    required
-                    sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <FormControl
-                    fullWidth
-                    required
-                    sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
-                  >
-                    <InputLabel id={`kategori-label-${index}`}>Kategori</InputLabel>
-                    <Select
-                      labelId={`kategori-label-${index}`}
-                      value={item.id_kategori}
-                      label="Kategori"
-                      onChange={(e) =>
-                        handlePengeluaranChange(index, "id_kategori", e.target.value)
-                      }
-                    >
-                      {kategoriOptions.map((kategori) => (
-                        <MenuItem key={kategori.id_kategori} value={kategori.id_kategori}>
-                          {kategori.nama_kategori}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {!item.id_kategori && <FormHelperText error>Pilih kategori</FormHelperText>}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={3}>
-                  <TextField
-                    label="Total Harga"
-                    type="number"
-                    value={item.total_harga}
-                    onChange={(e) => handlePengeluaranChange(index, "total_harga", e.target.value)}
-                    fullWidth
-                    required
-                    inputProps={{ min: 1 }}
-                    sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={1}>
-                  {daftarPengeluaran.length > 1 && (
-                    <IconButton color="error" onClick={() => handleRemoveRow(index)}>
-                      <RemoveCircleOutline />
-                    </IconButton>
-                  )}
-                </Grid>
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Tanggal Pengajuan"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                  value={tanggal}
+                  onChange={(e) => setTanggal(e.target.value)}
+                  required
+                  sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
+                />
               </Grid>
-            </Paper>
-          ))}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Nominal Pengajuan"
+                  type="number"
+                  fullWidth
+                  value={nominalPengajuan}
+                  onChange={(e) => setNominalPengajuan(e.target.value)}
+                  required
+                  sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
+                />
+              </Grid>
+            </Grid>
 
-          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: "#3f51b5", fontWeight: "bold" }}>
+              Daftar Pengeluaran
+            </Typography>
+
+            {daftarPengeluaran.map((item, index) => (
+              <Paper key={index} variant="outlined" sx={{ p: 3, mb: 2, boxShadow: 2 }}>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      label="Nama Item"
+                      value={item.nama_item}
+                      onChange={(e) => handlePengeluaranChange(index, "nama_item", e.target.value)}
+                      fullWidth
+                      required
+                      sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <FormControl
+                      fullWidth
+                      required
+                      sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
+                    >
+                      <InputLabel id={`kategori-label-${index}`}>Kategori</InputLabel>
+                      <Select
+                        labelId={`kategori-label-${index}`}
+                        value={item.id_kategori}
+                        label="Kategori"
+                        onChange={(e) =>
+                          handlePengeluaranChange(index, "id_kategori", e.target.value)
+                        }
+                      >
+                        {kategoriOptions.map((kategori) => (
+                          <MenuItem key={kategori.id_kategori} value={kategori.id_kategori}>
+                            {kategori.nama_kategori}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {!item.id_kategori && <FormHelperText error>Pilih kategori</FormHelperText>}
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <TextField
+                      label="Total Harga"
+                      type="number"
+                      value={item.total_harga}
+                      onChange={(e) =>
+                        handlePengeluaranChange(index, "total_harga", e.target.value)
+                      }
+                      fullWidth
+                      required
+                      inputProps={{ min: 1 }}
+                      sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={1}>
+                    {daftarPengeluaran.length > 1 && (
+                      <IconButton color="error" onClick={() => handleRemoveRow(index)}>
+                        <RemoveCircleOutline />
+                      </IconButton>
+                    )}
+                  </Grid>
+                </Grid>
+              </Paper>
+            ))}
+
+            <Box sx={{ mb: 3 }}>
+              <Button
+                variant="outlined"
+                startIcon={<AddCircleOutline />}
+                onClick={handleAddRow}
+                sx={{
+                  color: "#3f51b5",
+                  border: "2px solid #3f51b5",
+                  "&:hover": {
+                    backgroundColor: "#3f51b5",
+                    color: "#fff",
+                  },
+                }}
+              >
+                Tambah Item
+              </Button>
+            </Box>
+
+            {error && (
+              <Typography color="error" sx={{ mb: 2 }}>
+                {error}
+              </Typography>
+            )}
+
+            {successMsg && (
+              <Typography color="success.main" sx={{ mb: 2 }}>
+                {successMsg}
+              </Typography>
+            )}
+
             <Button
-              variant="outlined"
-              startIcon={<AddCircleOutline />}
-              onClick={handleAddRow}
+              variant="contained"
+              color="primary"
+              type="submit"
+              fullWidth
               sx={{
-                color: "#3f51b5",
-                border: "2px solid #3f51b5",
+                padding: "12px",
+                fontWeight: "bold",
+                borderRadius: 1,
                 "&:hover": {
-                  backgroundColor: "#3f51b5",
-                  color: "#fff",
+                  backgroundColor: "#303f9f",
                 },
               }}
             >
-              Tambah Item
+              Kirim Pengajuan
             </Button>
-          </Box>
-
-          {error && (
-            <Typography color="error" sx={{ mb: 2 }}>
-              {error}
-            </Typography>
-          )}
-
-          {successMsg && (
-            <Typography color="success.main" sx={{ mb: 2 }}>
-              {successMsg}
-            </Typography>
-          )}
-
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            fullWidth
-            sx={{
-              padding: "12px",
-              fontWeight: "bold",
-              borderRadius: 1,
-              "&:hover": {
-                backgroundColor: "#303f9f",
-              },
-            }}
-          >
-            Kirim Pengajuan
-          </Button>
-        </form>
-      </Card>
-    </Container>
+          </form>
+        </Card>
+      </Container>
+    </DashboardLayout>
   );
 };
 

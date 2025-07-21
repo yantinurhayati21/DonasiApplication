@@ -58,7 +58,7 @@ const Pengajuan = {
 
   getAll: async () => {
     const result = await pool.query(
-      "SELECT * FROM pengajuan ORDER BY created_at ASC"
+      "SELECT * FROM pengajuan ORDER BY created_at DESC"
     );
     return result.rows;
   },
@@ -232,6 +232,85 @@ const Pengajuan = {
     } finally {
       client.release();
     }
+  },
+
+  // Mengambil total pengeluaran berdasarkan rentang tanggal
+  getPengeluaranByDateRange: async (startDate, endDate) => {
+    const result = await pool.query(
+      `SELECT 
+        SUM(p.total_harga_act) AS total_pengeluaran
+      FROM pengeluaran p
+      JOIN pengajuan pn ON p.id_pengajuan = pn.id_pengajuan
+      WHERE pn.status_pengajuan = 'diterima'
+        AND p.total_harga_act IS NOT NULL
+        AND p.total_harga_act > 0
+        AND pn.tanggal BETWEEN $1 AND $2`,
+      [startDate, endDate]
+    );
+    return result.rows[0].total_pengeluaran || 0;
+  },
+ // Mengambil data pengeluaran dan harga aktual berdasarkan rentang tanggal
+  getPengeluaranByDateRange: async (startDate, endDate) => {
+    const result = await pool.query(
+      `SELECT 
+        p.nama_item AS "Nama Barang",
+        k.nama_kategori AS "Kategori",
+        p.total_harga AS "Harga Barang",
+        p.nama_item_act AS "Item Aktual",
+        p.total_harga_act AS "Harga Aktual"
+      FROM pengeluaran p
+      JOIN kategori_pengeluaran k ON p.id_kategori = k.id_kategori
+      JOIN pengajuan pn ON p.id_pengajuan = pn.id_pengajuan
+      WHERE pn.status_pengajuan = 'diterima'
+        AND p.total_harga_act IS NOT NULL
+        AND p.total_harga_act > 0
+        AND pn.tanggal BETWEEN $1 AND $2`,
+      [startDate, endDate]
+    );
+    return result.rows;
+  },
+
+  // Mengambil total pengeluaran berdasarkan rentang tanggal
+  // Mengambil total pengeluaran berdasarkan rentang tanggal
+  getTotalPengeluaranByDateRange: async (startDate, endDate) => {
+    const result = await pool.query(
+      `SELECT SUM(p.total_harga_act) AS total_pengeluaran
+      FROM pengeluaran p
+      JOIN pengajuan pn ON p.id_pengajuan = pn.id_pengajuan
+      WHERE pn.status_pengajuan = 'diterima'
+        AND p.total_harga_act IS NOT NULL
+        AND p.total_harga_act > 0
+        AND pn.tanggal BETWEEN $1 AND $2`,
+      [startDate, endDate]
+    );
+    return result.rows[0].total_pengeluaran || 0;
+  },
+
+
+  // Mengambil total pengeluaran sebelum periode yang diberikan
+  getPengeluaranAwal: async (endDate) => {
+    const result = await pool.query(
+      `SELECT SUM(p.total_harga_act) AS total_pengeluaran
+       FROM pengeluaran p
+       JOIN pengajuan pn ON p.id_pengajuan = pn.id_pengajuan
+       WHERE pn.status_pengajuan = 'diterima'
+         AND p.total_harga_act IS NOT NULL
+         AND p.total_harga_act > 0
+         AND pn.tanggal < $1`,
+      [endDate]
+    );
+    return result.rows[0].total_pengeluaran || 0;
+  },
+
+  updateStatusBukti: async (id_pengajuan, status_bukti) => {
+    const result = await pool.query(
+      `UPDATE pengajuan 
+       SET status_bukti_pengeluaran = $1 
+       WHERE id_pengajuan = $2 
+       RETURNING *`,
+      [status_bukti, id_pengajuan]
+    );
+    return result.rows[0];
   },
 };
 

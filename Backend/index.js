@@ -1,4 +1,6 @@
 import express from "express";
+import path from "path";
+import url from "url";
 import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
@@ -11,15 +13,16 @@ import cookieParser from "cookie-parser";
 import pengajuanRoutes from "./routes/pengajuanRoutes.js";
 import kategoriRoutes from "./routes/kategoriRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js"; // Corrected import path
+import laporanRoutes from "./routes/laporanRoutes.js"; // Import laporan routes
 
 dotenv.config();
-
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3001", // Izinkan frontend dari localhost:3001
-    methods: ["GET", "POST"], // Izinkan metode GET dan POST
+    methods: ["GET", "POST", "PUT", "DELETE" , "PATCH"], // Izinkan metode GET dan POST
     allowedHeaders: ["Content-Type"], // Header yang diizinkan
   }
 });
@@ -33,7 +36,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: "http://localhost:3001",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -54,7 +57,9 @@ app.use("/api/donasi", donasiRoutes);
 app.use("/api/auth", userRoutes);
 app.use("/api/pengajuan", pengajuanRoutes);
 app.use("/api/kategori", kategoriRoutes);
-app.use("/api/dashboard", dashboardRoutes); // Corrected path for dashboard routes
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/laporan", laporanRoutes); // Use laporan routes
 
 
 // Menjalankan server

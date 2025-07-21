@@ -18,7 +18,9 @@ import {
 import axios from "axios";
 import * as yup from "yup";
 import { jwtDecode } from "jwt-decode";
-
+import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import Footer from "examples/Footer";
 const schemaTidakTetap = yup.object().shape({
   nama: yup.string().required("Nama wajib diisi"),
   email: yup.string().email("Email tidak valid").required("Email wajib diisi"),
@@ -184,129 +186,139 @@ export default function DonationForm() {
   };
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{
-        maxWidth: 600,
-        margin: "auto",
-        padding: 3,
-        backgroundColor: "#fff",
-        borderRadius: 2,
-        boxShadow: 3,
-      }}
-      noValidate
-    >
-      <Typography variant="h4" mb={3} textAlign="center" fontWeight="bold">
-        Form Donasi
-      </Typography>
+    <DashboardLayout>
+      <DashboardNavbar />
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          maxWidth: 600,
+          margin: "auto",
+          padding: 3,
+          backgroundColor: "#fff",
+          borderRadius: 2,
+          boxShadow: 3,
+        }}
+        noValidate
+      >
+        <Typography variant="h4" mb={3} textAlign="center" fontWeight="bold">
+          Form Donasi
+        </Typography>
 
-      {!isDonaturTetap && (
-        <>
-          <TextField
-            label="Nama"
-            fullWidth
-            margin="normal"
-            value={nama}
-            onChange={(e) => setNama(e.target.value)}
-            error={Boolean(errors.nama)}
-            helperText={errors.nama}
-          />
-          <TextField
-            label="Email"
-            type="email"
-            fullWidth
-            margin="normal"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={Boolean(errors.email)}
-            helperText={errors.email}
-          />
-          <TextField
-            label="Alamat"
-            fullWidth
-            margin="normal"
-            multiline
-            minRows={2}
-            value={alamat}
-            onChange={(e) => setAlamat(e.target.value)}
-            error={Boolean(errors.alamat)}
-            helperText={errors.alamat}
-          />
-          <TextField
-            label="No Telepon"
-            fullWidth
-            margin="normal"
-            value={noTelepon}
-            onChange={(e) => setNoTelepon(e.target.value)}
-            error={Boolean(errors.noTelepon)}
-            helperText={errors.noTelepon}
-          />
-        </>
-      )}
-
-      <TextField
-        label="Nominal Donasi"
-        type="number"
-        fullWidth
-        margin="normal"
-        value={nominal}
-        onChange={(e) => setNominal(e.target.value)}
-        error={Boolean(errors.nominal)}
-        helperText={errors.nominal}
-      />
-
-      <FormControl fullWidth margin="normal" error={Boolean(errors.doaPilihan)}>
-        <InputLabel id="doa-pilihan-label">Pilih Doa</InputLabel>
-        <Select
-          labelId="doa-pilihan-label"
-          multiple
-          value={doaPilihan}
-          onChange={(e) =>
-            setDoaPilihan(
-              typeof e.target.value === "string" ? e.target.value.split(",") : e.target.value
-            )
-          }
-          input={<OutlinedInput label="Pilih Doa" />}
-          renderValue={(selected) =>
-            doaList
-              .filter((doa) => selected.includes(doa.id_doa))
-              .map((doa) => doa.nama_doa)
-              .join(", ")
-          }
-          MenuProps={MenuProps}
-        >
-          {doaList.map((doa) => (
-            <MenuItem key={doa.id_doa} value={doa.id_doa}>
-              <Checkbox checked={doaPilihan.indexOf(doa.id_doa) > -1} />
-              <ListItemText primary={doa.nama_doa} />
-            </MenuItem>
-          ))}
-        </Select>
-        <FormHelperText>{errors.doaPilihan}</FormHelperText>
-      </FormControl>
-
-      <TextField
-        label="Doa Spesific"
-        fullWidth
-        margin="normal"
-        multiline
-        minRows={3}
-        value={doaSpesific}
-        onChange={(e) => setDoaSpesific(e.target.value)}
-      />
-
-      <Stack mt={3} spacing={2}>
-        <Button variant="contained" type="submit" size="large" fullWidth>
-          Kirim Donasi
-        </Button>
-
-        {submitStatus && (
-          <Alert severity={submitStatus.success ? "success" : "error"}>
-            {submitStatus.message}
-          </Alert>
+        {!isDonaturTetap && (
+          <>
+            <TextField
+              label="Nama"
+              fullWidth
+              margin="normal"
+              value={nama}
+              required
+              onChange={(e) => setNama(e.target.value)}
+              error={Boolean(errors.nama)}
+              helperText={errors.nama}
+            />
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              required
+              margin="normal"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              error={Boolean(errors.email)}
+              helperText={errors.email}
+            />
+            <TextField
+              label="Alamat"
+              fullWidth
+              margin="normal"
+              multiline
+              required
+              minRows={2}
+              value={alamat}
+              onChange={(e) => setAlamat(e.target.value)}
+              error={Boolean(errors.alamat)}
+              helperText={errors.alamat}
+            />
+            <TextField
+              label="No Telepon"
+              fullWidth
+              margin="normal"
+              required
+              value={noTelepon}
+              onChange={(e) => setNoTelepon(e.target.value)}
+              error={Boolean(errors.noTelepon)}
+              helperText={errors.noTelepon}
+            />
+          </>
         )}
-      </Stack>
-    </Box>
+
+        <TextField
+          label="Nominal Donasi"
+          type="number"
+          fullWidth
+          required
+          margin="normal"
+          value={nominal}
+          onChange={(e) => setNominal(e.target.value)}
+          error={Boolean(errors.nominal)}
+          helperText={errors.nominal}
+        />
+
+        <FormControl fullWidth margin="normal" error={Boolean(errors.doaPilihan)}>
+          <InputLabel id="doa-pilihan-label">Pilih Doa</InputLabel>
+          <Select
+            labelId="doa-pilihan-label"
+            multiple
+            required
+            value={doaPilihan}
+            onChange={(e) =>
+              setDoaPilihan(
+                typeof e.target.value === "string" ? e.target.value.split(",") : e.target.value
+              )
+            }
+            input={<OutlinedInput label="Daftar Doa Pilihan" />}
+            renderValue={(selected) =>
+              doaList
+                .filter((doa) => selected.includes(doa.id_doa))
+                .map((doa) => doa.nama_doa)
+                .join(", ")
+            }
+            MenuProps={MenuProps}
+          >
+            {doaList.map((doa) => (
+              <MenuItem key={doa.id_doa} value={doa.id_doa}>
+                <Checkbox checked={doaPilihan.indexOf(doa.id_doa) > -1} />
+                <ListItemText primary={doa.nama_doa} />
+              </MenuItem>
+            ))}
+          </Select>
+          <FormHelperText>{errors.doaPilihan}</FormHelperText>
+        </FormControl>
+
+        <TextField
+          label="Doa Khusus (Opsional)"
+          fullWidth
+          margin="normal"
+          multiline
+          minRows={3}
+          value={doaSpesific}
+          onChange={(e) => setDoaSpesific(e.target.value)}
+        />
+
+        <Stack mt={3} spacing={2}>
+          <Button variant="contained" type="submit" size="large" fullWidth>
+            Kirim Donasi
+          </Button>
+
+          {submitStatus && (
+            <Alert severity={submitStatus.success ? "success" : "error"}>
+              {submitStatus.message}
+            </Alert>
+          )}
+        </Stack>
+      </Box>
+      <Footer />
+    </DashboardLayout>
   );
 }

@@ -87,25 +87,29 @@ export const updateDonatur = async (req, res) => {
   }
 };
 
-export const deleteDonatur = async (req, res) => {
-  let { id_donatur } = req.params;
-
-  // Konversi id_donatur menjadi integer jika perlu
-  id_donatur = parseInt(id_donatur, 10); // Pastikan id_donatur adalah integer
-
-  if (isNaN(id_donatur)) {
-    return res
-      .status(400)
-      .json({ error: "Invalid id_donatur. It must be an integer." });
-  }
-
-  console.log("Attempting to delete donatur with id:", id_donatur); // Log id_donatur
-
+export const updateDonaturStatus = async (req, res) => {
   try {
-    await Donatur.delete(id_donatur);
-    res.json({ message: "Donatur deleted successfully" });
+    const { status_aktif } = req.body;  // Mengambil status_aktif dari body request
+    const { id } = req.params; // Mengambil id_donatur dari parameter URL
+     // Log untuk memastikan status_aktif yang diterima
+    console.log("Received status_aktif:", status_aktif);
+    // Pastikan status_aktif adalah boolean (true/false)
+    if (typeof status_aktif !== "boolean") {
+      return res.status(400).json({ message: "status_aktif harus berupa boolean." });
+    }
+
+    // Memanggil fungsi updateStatus pada model Donatur
+    const updatedDonatur = await Donatur.updateStatus(id, status_aktif);
+
+    // Jika update berhasil, kirimkan data donatur yang diperbarui sebagai respons
+    res.json({
+      message: "Status donatur berhasil diperbarui.",
+      donatur: updatedDonatur,
+    });
   } catch (err) {
-    console.error("Error deleting donatur:", err); // Log the error for debugging
+    console.error("Error updating donatur status:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
+

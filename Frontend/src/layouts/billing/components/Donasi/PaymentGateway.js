@@ -6,6 +6,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import { Box, Typography } from "@mui/material";
 
 const SnapPayment = () => {
   const { token } = useParams();
@@ -16,7 +18,6 @@ const SnapPayment = () => {
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
-    // if (token) {
     const script = document.createElement("script");
     script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
     script.setAttribute("data-client-key", "SB-Mid-client-I98qkLjSbupoiE_R");
@@ -49,13 +50,11 @@ const SnapPayment = () => {
         },
       });
     };
-    // }
-  }, []);
+  }, [token]);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    // Cek tipe donatur (tetap atau tidak) dari localStorage atau state lain
-    const tipeDonatur = localStorage.getItem("tipeDonatur"); // misal: "tetap" atau "tidak"
+    const tipeDonatur = localStorage.getItem("tipeDonatur");
 
     if (tipeDonatur === "Tetap") {
       navigate("/dashboard-donatur");
@@ -68,19 +67,35 @@ const SnapPayment = () => {
     return <div>Token belum tersedia. Harap coba lagi.</div>;
   }
 
-  // if (!loading) {
-  //   return <div>Memuat pembayaran...</div>;
-  // }
-
   return (
-    <div>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        backgroundColor: "#f4f6f8",
+        padding: 3,
+      }}
+    >
       {isDone ? (
         <>
-          <Dialog open={openDialog} onClose={handleCloseDialog}>
-            <DialogTitle>Terima Kasih!</DialogTitle>
-            <DialogContent>Pembayaran donasi Anda telah berhasil.</DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDialog} autoFocus>
+          {/* Mengubah ukuran dialog dengan width dan height yang lebih besar */}
+          <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+            <DialogTitle sx={{ textAlign: "center", fontWeight: "bold" }}>
+              Terima Kasih!
+            </DialogTitle>
+            <DialogContent>
+              <Typography variant="h6" align="center" color="textPrimary">
+                Pembayaran donasi Anda telah berhasil.
+              </Typography>
+              <Typography variant="body1" align="center" color="textSecondary" sx={{ mt: 2 }}>
+                Terima kasih atas donasi Anda yang sangat berarti. Kami akan segera memprosesnya.
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "center" }}>
+              <Button variant="contained" onClick={handleCloseDialog} color="primary">
                 Tutup
               </Button>
             </DialogActions>
@@ -88,10 +103,15 @@ const SnapPayment = () => {
         </>
       ) : (
         <>
-          <h3>Menunggu pembayaran...</h3>
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="h4" color="textSecondary" gutterBottom>
+              Menunggu pembayaran...
+            </Typography>
+            <CircularProgress size={60} color="primary" />
+          </Box>
         </>
       )}
-    </div>
+    </Box>
   );
 };
 

@@ -59,7 +59,7 @@ function Basic() {
         password,
       });
 
-      const { token, role, tipeDonatur, id_user } = response.data;
+      const { token, role, tipeDonatur, nama, id_user } = response.data;
 
       // Simpan token ke cookie dan localStorage
       Cookies.set("token", token, {
@@ -68,6 +68,7 @@ function Basic() {
       });
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
+      localStorage.setItem("nama", nama);
       localStorage.setItem("tipeDonatur", tipeDonatur);
       localStorage.setItem("id_user", id_user);
 

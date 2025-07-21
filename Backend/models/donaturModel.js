@@ -52,66 +52,33 @@ const Donatur = {
     return result.rows[0];
   },
 
-  delete: async (id_donatur) => {
-    const client = await pool.connect(); // Use client for transaction handling
+  updateStatus: async (id_donatur, status_aktif) => {
+    const client = await pool.connect(); // Menggunakan client untuk transaksi
 
     try {
-      // Pastikan id_donatur adalah integer
-      console.log(
-        "Received id_donatur:",
-        id_donatur,
-        "Type:",
-        typeof id_donatur
-      );
-      id_donatur = parseInt(id_donatur, 10);
-
-      if (isNaN(id_donatur)) {
-        throw new Error("id_donatur must be an integer.");
-      }
-
-      console.log("Attempting to delete donatur with id:", id_donatur);
-
+      // Mulai transaksi
       await client.query("BEGIN");
 
-      // Step 1: Check if the donatur exists
-      const donaturRes = await client.query(
-        "SELECT * FROM donatur WHERE id_donatur = $1::int", // Menggunakan cast ::int untuk memastikan integer
-        [id_donatur]
+      // Update status_aktif donatur berdasarkan id_donatur
+      const result = await client.query(
+        `UPDATE donatur 
+        SET status_aktif = $1 
+        WHERE id_donatur = $2 
+        RETURNING *`,
+        [status_aktif, id_donatur]
       );
+      const updatedDonatur = result.rows[0];
 
-      console.log("Donatur query result:", donaturRes.rows);
-
-      if (donaturRes.rows.length === 0) {
-        throw new Error("Donatur not found");
-      }
-
-      const donatur = donaturRes.rows[0];
-
-      // Step 2: Now delete from donatur table first
-      await client.query(
-        "DELETE FROM donatur WHERE id_donatur = $1::int", // Menggunakan cast ::int untuk memastikan integer
-        [id_donatur]
-      );
-
-      console.log("Deleted donatur with id:", id_donatur);
-
-      // Step 3: If donatur is a permanent one (id_user is not null), delete from users table
-      if (donatur.id_user !== null) {
-        await client.query(
-          "DELETE FROM users WHERE id_user = $1::int", // Menggunakan cast ::int untuk memastikan integer
-          [donatur.id_user]
-        );
-
-        console.log("Deleted user with id_user:", donatur.id_user);
-      }
-
+      // Jika status diupdate, komit transaksi
       await client.query("COMMIT");
+      return updatedDonatur;
     } catch (error) {
+      // Jika terjadi kesalahan, rollback transaksi
       await client.query("ROLLBACK");
-      console.error("Error during deletion:", error);
-      throw new Error(`Error deleting donatur: ${error.message}`);
+      console.error("Error updating donatur status:", error);
+      throw new Error(`Error updating donatur status: ${error.message}`);
     } finally {
-      client.release();
+      client.release(); // Pastikan koneksi dilepas
     }
   },
 };

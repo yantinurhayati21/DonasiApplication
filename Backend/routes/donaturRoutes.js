@@ -4,7 +4,7 @@ import {
   getByUserId,
   createDonatur,
   updateDonatur,
-  deleteDonatur
+  updateDonaturStatus
 } from "../controllers/donaturController.js"; 
 
 const router = express.Router();
@@ -18,10 +18,11 @@ router.get("/:id", getByUserId);
 // Route to create a new Donatur (also creates a user in the 'users' table)
 router.post("/register", createDonatur);
 
-// Route to update an existing Donatur (also updates the corresponding user in the 'users' table)
+// Route to update a Donatur by ID
 router.put("/:id", updateDonatur);
 
-// Route to delete a Donatur (also deletes the associated user due to the foreign key constraint)
-router.delete("/:id", deleteDonatur);
+// Route to update the status of a Donatur
+router.patch("/status/:id", updateDonaturStatus);
+
 
 export default router;

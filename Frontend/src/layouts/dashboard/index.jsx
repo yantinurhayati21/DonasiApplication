@@ -3,34 +3,70 @@ import { Grid, Typography, Button, Container, Box, Stack, Link } from "@mui/mate
 import Footer from "examples/Footer";
 import Slider from "react-slick";
 import { jwtDecode } from "jwt-decode";
+
 const Dashboard = () => {
+  const [currentSlide, setCurrentSlide] = React.useState(0);
   const carouselSettings = {
     dots: true,
     infinite: true,
     speed: 500,
-    slidesToShow: 1,
+    slidesToShow: 3,
     slidesToScroll: 1,
+    centerMode: true,
+    centerPadding: "0px",
     autoplay: true,
     autoplaySpeed: 4000,
+    arrows: false,
+    initialSlide: 0,
+    responsive: [
+      {
+        breakpoint: 900,
+        settings: {
+          slidesToShow: 1,
+          centerMode: false,
+        },
+      },
+    ],
+    afterChange: (current) => setCurrentSlide(current),
   };
 
+  const slides = [
+    {
+      img: "/images/pendidikan-agama.jpeg",
+      title: "Pendidikan Agama & Umum",
+      desc: "Pembelajaran intensif Al-Qur’an, fiqh, serta pelajaran umum untuk membentuk karakter unggul.",
+    },
+    {
+      img: "/images/pelatihan-kewirausahaan.jpeg",
+      title: "Pelatihan Kewirausahaan",
+      desc: "Program pengembangan keterampilan usaha agar santri dapat mandiri secara ekonomi.",
+    },
+    {
+      img: "/images/kegiatan-sosial.jpeg",
+      title: "Kegiatan Sosial & Pengabdian",
+      desc: "Aksi sosial dan pelayanan masyarakat sebagai bentuk pengamalan ilmu dan kepedulian sosial.",
+    },
+  ];
+
+  // currentSlide state sudah dipindahkan ke atas agar afterChange bekerja benar
+
   useEffect(() => {
-    // Cek token dan decode untuk cek donatur tetap
+    // Check token and decode to check donor status
     const token = localStorage.getItem("token");
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        // console.log("Decoded token payload:", decoded);
+        // Redirect to donor dashboard if the user is a donor
         if (decoded.id_user) window.location.href = "/dashboard-donatur";
       } catch {
-        console.error("Token tidak valid: id_user tidak ada");
+        console.error("Invalid token: id_user not found");
       }
     }
   }, []);
 
   return (
     <Box sx={{ bgcolor: "#f9f9f9", minHeight: "100vh" }}>
-      {/* Header with Login / Sign Up */}
+      {/* Header with Login */}
       <Box
         sx={{
           display: "flex",
@@ -48,13 +84,6 @@ const Dashboard = () => {
             sx={{ fontWeight: "bold", color: "primary.main", fontSize: "1rem" }}
           >
             Login
-          </Link>
-          <Link
-            href="/authentication/sign-up"
-            underline="none"
-            sx={{ fontWeight: "bold", color: "primary.main", fontSize: "1rem" }}
-          >
-            Sign Up
           </Link>
         </Stack>
       </Box>
@@ -117,111 +146,6 @@ const Dashboard = () => {
         </Container>
       </Box>
 
-      {/* Pembukaan Penerimaan Donasi */}
-      <Box sx={{ bgcolor: "#fff3e0", py: 6 }}>
-        <Container maxWidth="md">
-          <Typography variant="h4" textAlign="center" fontWeight="medium" mb={3} color="primary">
-            Pembukaan Penerimaan Donasi
-          </Typography>
-          <Typography variant="body1" textAlign="center" mb={3} px={{ xs: 2, md: 8 }}>
-            Saat ini kami membuka kesempatan bagi Anda untuk ikut berpartisipasi dalam program
-            donasi untuk membangun fasilitas pendidikan dan kesejahteraan anak yatim. Donasi Anda
-            sangat berarti dan akan langsung kami salurkan secara transparan.
-          </Typography>
-          <Box textAlign="center">
-            <Button
-              variant="outlined"
-              size="large"
-              href="/donasi"
-              sx={{ borderColor: "primary.main", color: "primary.main", fontWeight: "bold" }}
-            >
-              Info Donasi Lengkap
-            </Button>
-          </Box>
-        </Container>
-      </Box>
-
-      {/* Tentang Program */}
-      <Box sx={{ backgroundColor: "white", py: 8 }}>
-        <Container maxWidth="lg">
-          <Typography variant="h4" textAlign="center" fontWeight="medium" mb={6}>
-            Tentang Program Kami
-          </Typography>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
-              <Box p={4} borderRadius={3} boxShadow={3} textAlign="center" height="100%">
-                <Typography variant="h5" color="primary" gutterBottom>
-                  Pesantren Berdaya
-                </Typography>
-                <Typography variant="body2" mt={1}>
-                  Fasilitasi pendidikan dan kewirausahaan untuk menciptakan pesantren yang mandiri
-                  dan berdaya saing.
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box p={4} borderRadius={3} boxShadow={3} textAlign="center" height="100%">
-                <Typography variant="h5" color="primary" gutterBottom>
-                  Anak Yatim & Dhuafa
-                </Typography>
-                <Typography variant="body2" mt={1}>
-                  Pemberian bantuan untuk kebutuhan pokok, pendidikan, dan pembinaan karakter bagi
-                  mereka yang membutuhkan.
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Box p={4} borderRadius={3} boxShadow={3} textAlign="center" height="100%">
-                <Typography variant="h5" color="primary" gutterBottom>
-                  Transparansi Dana
-                </Typography>
-                <Typography variant="body2" mt={1}>
-                  Kami memberikan laporan rutin agar Anda dapat melihat dampak nyata dari setiap
-                  kontribusi Anda.
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
-      {/* Kegiatan Pesantren */}
-      <Box sx={{ bgcolor: "#e3f2fd", py: 8 }}>
-        <Container maxWidth="lg">
-          <Typography variant="h4" color="primary" textAlign="center" mb={5} fontWeight="medium">
-            Kegiatan-Kegiatan Pesantren
-          </Typography>
-          <Slider {...carouselSettings}>
-            <Box p={3} bgcolor="white" borderRadius={3} boxShadow={2} textAlign="center">
-              <Typography variant="h6" fontWeight="bold">
-                Pendidikan Agama & Umum
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Pembelajaran intensif Al-Qur’an, fiqh, serta pelajaran umum untuk membentuk karakter
-                unggul.
-              </Typography>
-            </Box>
-            <Box p={3} bgcolor="white" borderRadius={3} boxShadow={2} textAlign="center">
-              <Typography variant="h6" fontWeight="bold">
-                Pelatihan Kewirausahaan
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Program pengembangan keterampilan usaha agar santri dapat mandiri secara ekonomi.
-              </Typography>
-            </Box>
-            <Box p={3} bgcolor="white" borderRadius={3} boxShadow={2} textAlign="center">
-              <Typography variant="h6" fontWeight="bold">
-                Kegiatan Sosial & Pengabdian
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Aksi sosial dan pelayanan masyarakat sebagai bentuk pengamalan ilmu dan kepedulian
-                sosial.
-              </Typography>
-            </Box>
-          </Slider>
-        </Container>
-      </Box>
-
       {/* Profil Pesantren */}
       <Box sx={{ bgcolor: "white", py: 8 }}>
         <Container maxWidth="md">
@@ -229,15 +153,121 @@ const Dashboard = () => {
             Profil Pesantren
           </Typography>
           <Typography variant="body1" color="text.secondary" textAlign="justify" mb={3}>
-            Pesantren kami berdiri sejak tahun 1995 dengan visi menciptakan generasi muda yang
-            berakhlak mulia, mandiri, dan berdaya saing. Kami mengutamakan pendidikan agama yang
-            kuat serta pengembangan keterampilan hidup yang aplikatif.
+            Istana Yatim Dhuafa berdiri sejak 2013 di Sariwangi, Bandung Barat, sebagai tempat untuk
+            anak-anak yatim dan dhuafa yang membutuhkan kasih sayang dan pendidikan. Dengan
+            fasilitas sederhana, pesantren ini memberikan pendidikan dari SD hingga SMA,
+            mengutamakan pengembangan akhlak dan karakter.
           </Typography>
-          <Typography variant="body1" color="text.secondary" textAlign="justify">
-            Dengan dukungan para donatur dan masyarakat, pesantren terus berkembang menjadi pusat
-            pendidikan dan pengembangan karakter yang mampu menjawab tantangan zaman serta membantu
-            anak-anak yatim dan dhuafa meraih masa depan lebih cerah.
+          <Typography variant="body1" color="text.secondary" textAlign="justify" mb={3}>
+            Dengan dukungan para mujahid dan donatur, Istana Yatim Dhuafa terus berupaya memberikan
+            harapan bagi masa depan anak-anak yang terpinggirkan. Setiap kontribusi menjadi bagian
+            penting dalam membangun masa depan yang lebih cerah bagi mereka.
           </Typography>
+
+          {/* Call-to-Action for Donatur Tetap */}
+          <Box textAlign="center" mt={5}>
+            <Typography variant="h6" color="text.primary" mb={3}>
+              Bergabunglah menjadi Donatur Tetap dan berikan harapan bagi masa depan anak yatim dan
+              dhuafa. Dengan donasi berkala, Anda tidak hanya memberikan bantuan, tetapi juga
+              menciptakan perubahan yang lebih berarti bagi kehidupan mereka.
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              sx={{
+                backgroundColor: "#ff7043",
+                color: "#fff",
+                borderRadius: "8px",
+                px: 5,
+                py: 1.5,
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+                ":hover": {
+                  backgroundColor: "#ff5722",
+                },
+              }}
+              href="/authentication/sign-up"
+            >
+              Daftar Donatur Tetap
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* Kegiatan Pesantren with images */}
+      <Box sx={{ bgcolor: "#e3f2fd", py: 8 }}>
+        <Container maxWidth="lg">
+          <Typography variant="h4" color="primary" textAlign="center" mb={5} fontWeight="medium">
+            Kegiatan-Kegiatan Pesantren
+          </Typography>
+          <Slider {...carouselSettings}>
+            {slides.map((slide, idx) => {
+              // Mapping visual position: left, center, right
+              let pos = "hidden";
+              if (slides.length === 1) {
+                pos = "center";
+              } else if (slides.length === 2) {
+                pos = idx === currentSlide ? "center" : "right";
+              } else {
+                // react-slick centerMode: currentSlide is always the center
+                if (idx === currentSlide) {
+                  pos = "center";
+                } else if (idx === (currentSlide - 1 + slides.length) % slides.length) {
+                  pos = "left";
+                } else if (idx === (currentSlide + 1) % slides.length) {
+                  pos = "right";
+                }
+              }
+              return (
+                <Box
+                  key={slide.title}
+                  p={2}
+                  bgcolor="white"
+                  borderRadius={3}
+                  boxShadow={2}
+                  textAlign="center"
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: pos === "hidden" ? 0.3 : 1,
+                    // Semua gambar sama besar, tidak ada transform scale
+                    transition: "all 0.4s cubic-bezier(.4,2,.6,1)",
+                    boxShadow: 2,
+                    zIndex: pos === "center" ? 2 : 1,
+                    mx: 1,
+                    textAlign: "center",
+                  }}
+                >
+                  <img
+                    src={slide.img}
+                    alt={slide.title}
+                    style={{
+                      width: "90%",
+                      maxWidth: "400px",
+                      borderRadius: "8px",
+                      marginBottom: "1rem",
+                      objectFit: "cover",
+                      filter: "none",
+                      boxShadow: "0 8px 24px #bbb",
+                      transition: "all 0.4s cubic-bezier(.4,2,.6,1)",
+                    }}
+                  />
+                  {pos === "center" && (
+                    <>
+                      <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>
+                        {slide.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        {slide.desc}
+                      </Typography>
+                    </>
+                  )}
+                </Box>
+              );
+            })}
+          </Slider>
         </Container>
       </Box>
 
