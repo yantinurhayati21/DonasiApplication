@@ -56,9 +56,8 @@ const getDonasiById = async (req, res) => {
 // ✅ Payment donasi via Midtrans
 const paymentDonasi = async (req, res) => {
   const { nominal } = req.body;
-  
-  try {
 
+  try {
     const orderId = `DON-${Date.now()}`;
 
     const params = {
@@ -96,136 +95,136 @@ const paymentDonasi = async (req, res) => {
   }
 };
 
-// ✅ Create Donasi (penyesuaian untuk jenis donatur)
-const createDonasi = async (req, res) => {
+const createDonasiTidakTetap = async (req, res) => {
   const {
-    jenis_donatur,
-    password,
     nama,
     email,
     alamat,
     no_telepon,
     nominal,
-    tanggal_donasi
+    doa_pilihan,
+    doa_spesific,
   } = req.body;
-  const token = req.cookies.token;
 
   try {
-    let id_donatur = null;
-    // Check if donor type is 'Tidak Tetap'
-    if (jenis_donatur === "Tidak Tetap") {
-      // Insert into donatur table for 'Tidak Tetap'
-      const donaturResult = await Donatur.create(
-        nama,
+    const donatur = await Donatur.create(
+      nama,
+      email,
+      alamat,
+      no_telepon,
+      "Tidak Tetap"
+    );
+
+    const orderId = `DON-${Date.now()}`;
+    const tanggal_donasi = new Date();
+
+    const donasi = await Donasi.create(
+      donatur.id_donatur,
+      nominal,
+      tanggal_donasi,
+      "Checking",
+      doa_pilihan,
+      doa_spesific,
+      orderId
+    );
+
+    const snapToken = await snap.createTransaction({
+      transaction_details: {
+        order_id: orderId,
+        gross_amount: nominal,
+      },
+      customer_details: {
+        first_name: nama,
         email,
-        alamat,
-        no_telepon,
-        jenis_donatur, // 'Tetap' or 'Tidak Tetap'
-      );
-      id_donatur = donaturResult.id_donatur;
-    } else if (jenis_donatur === "Tetap") {
-      // Handle 'Tetap' donor type: insert into users table first
-      // if (!email || !password) {
-      //   throw new Error("Email dan password harus diisi untuk donatur tetap.");
-      // }
-      jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-          return res.status(403).json({
-            message: "Token tidak valid",
-          });
-        }
-        id_donatur = user.id_donatur;
-      });;
-      // // Insert into the `users` table for "Tetap" donatur
-      // const userResult = await pool.query(
-      //   `INSERT INTO users (email, password, role) 
-      //    VALUES ($1, $2, 'Donatur') 
-      //    RETURNING id_user`,
-      //   [email, password]
-      // );
-      // const userId = userResult.rows[0].id_user;
-
-      // // Insert into donatur table for "Tetap"
-      // const donaturResult = await pool.query(
-      //   `INSERT INTO donatur 
-      //     (id_user, email, jenis_donatur, status_aktif) 
-      //    VALUES ($1, $2, $3, $4) 
-      //    RETURNING id_donatur`,
-      //   [userId, email, jenis_donatur, true]
-      // );
-      // id_donatur = donaturResult.rows[0].id_donatur;
-    } else {
-      throw new Error("Invalid donor type.");
-    }
-
-    try {
-      const donasiResult = await Donasi.create(
-        jenis_donatur,
-        nominal,
-        password,
-        tanggal_donasi,
-        "Checking",
-        id_donatur,
-      );
-
-      res.status(201).json({
-        status: "success",
-        message: "Donasi berhasil dibuat",
-        data: donasiResult,
-      });
-    } catch (error) {
-      console.error("Error inserting donation:", error);
-      res.status(500).json({
-        status: "error",
-        message: "Gagal membuat donasi",
-      });
-    }
-  } catch (error) {
-    console.error("Error creating donasi:", error);
-    res.status(500).json({
-      status: "error",
-      message: error.message || "Gagal membuat donasi",
+      },
+      credit_card: {
+        secure: true,
+      },
     });
+
+    res.status(201).json({
+      status: "success",
+      message: "Donasi tidak tetap berhasil dibuat",
+      data: {
+        token: snapToken.token,
+        order_id: orderId,
+        donasiId: donasi.id_donasi,
+        jenisDonatur: donatur.jenis_donatur,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating donasi tidak tetap:", error);
+    res.status(500).json({ message: "Gagal membuat donasi tidak tetap" });
+  }
+};
+// 🔸 Untuk donatur TETAP (harus login)
+const createDonasiTetap = async (req, res) => {
+  const { nominal, doa_pilihan, doa_spesific } = req.body;
+  const token = req.headers.authorization?.split(" ")[1];
+  console.log("Token from headaer:", token);
+  try {
+    if (!token) return res.status(401).json({ message: "Belum login" });
+
+    const user = jwt.verify(token, process.env.JWT_SECRET);
+
+    const id_user = user.id_user;
+    if (!id_user) {
+      return res.status(401).json({ message: "Token tidak valid: id_user tidak ada" });
+    }
+    const id_donatur = await getIdDonaturByUserId(id_user);
+
+    const orderId = `DON-${Date.now()}`;
+    const tanggal_donasi = new Date();
+
+    const donasi = await Donasi.create(
+      id_donatur,
+      nominal,
+      tanggal_donasi,
+      "Checking",
+      doa_pilihan,
+      doa_spesific,
+      orderId
+    );
+    const nama = user.nama || "Donatur Tetap";
+    const email = user.email || "donatur@example.com";
+    const snapToken = await snap.createTransaction({
+      transaction_details: {
+        order_id: orderId,
+        gross_amount: nominal,
+      },
+      customer_details: {
+        first_name: nama,
+        email: email,
+      },
+      credit_card: {
+        secure: true,
+      },
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Donasi tetap berhasil dibuat",
+      data: {
+        token: snapToken.token,
+        order_id: orderId,
+        donasiId: donasi.id_donasi,
+        jenisDonatur: "Tetap",
+      },
+    });
+  } catch (error) {
+    console.error("Error creating donasi tetap:", error);
+    res.status(500).json({ message: "Gagal membuat donasi tetap" });
   }
 };
 
-// ✅ Update donasi
-const updateDonasi = async (req, res) => {
-  const { id } = req.params;
-  const {
-    id_donatur,
-    tanggal_donasi,
-    nominal,
-    metode_pembayaran,
-    bukti_transfer,
-    status_donasi,
-    merchant_ref,
-  } = req.body;
-
-  try {
-    const updatedDonasi = await Donasi.update(
-      id,
-      id_donatur,
-      tanggal_donasi,
-      nominal,
-      metode_pembayaran,
-      bukti_transfer,
-      status_donasi,
-      merchant_ref
-    );
-
-    res.status(200).json({
-      status: "success",
-      message: "Donasi berhasil diperbarui",
-      data: updatedDonasi,
-    });
-  } catch (error) {
-    console.error("Error updating donasi:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Gagal memperbarui donasi",
-    });
+// Helper: get donatur
+const getIdDonaturByUserId = async (id_user) => {
+  const donatur = await Donatur.getByUserId(id_user);
+  if (!donatur) {
+    console.log("Donatur tidak ditemukan untuk id_user:", id_user);
+    throw new Error("Donatur tetap tidak ditemukan");
   }
+  return donatur.id_donatur;
 };
 
 // ✅ Delete donasi
@@ -272,9 +271,9 @@ const updateStatusDonasi = async (req, res) => {
 export {
   getAllDonasi,
   getDonasiById,
-  createDonasi,
-  updateDonasi,
+  createDonasiTetap,
+  createDonasiTidakTetap,
   deleteDonasi,
-  updateStatusDonasi,
   paymentDonasi,
+  updateStatusDonasi
 };

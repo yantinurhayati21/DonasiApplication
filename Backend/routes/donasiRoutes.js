@@ -2,8 +2,10 @@ import express from "express";
 import {
     getAllDonasi,
     getDonasiById,
-    createDonasi,
-    paymentDonasi
+    createDonasiTetap,
+    createDonasiTidakTetap,
+    paymentDonasi,
+    updateStatusDonasi
 } from "../controllers/donasiController.js"; 
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -16,9 +18,14 @@ router.get("/", getAllDonasi);
 router.get("/:id", getDonasiById);
 
 // Route to create a new Donatur (also creates a user in the 'users' table)
-router.post("/", createDonasi);
+router.post("/", verifyToken, createDonasiTetap);
+
+// Route to create a new Donatur (also creates a user in the 'users' table)
+router.post("/tidak-tetap", createDonasiTidakTetap);
 
 router.post("/payment", paymentDonasi);
+
+router.put("/:id", updateStatusDonasi);
 
 
 export default router;

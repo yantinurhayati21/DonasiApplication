@@ -1,122 +1,184 @@
-import React, { useEffect, useState } from "react";
-import { Grid, Card, Button, Typography, Box, Container, Badge } from "@mui/material";
-import { Notifications as NotificationsIcon } from "@mui/icons-material";
-import io from "socket.io-client";
-import MDSnackbar from "components/MDSnackbar"; // Sesuaikan dengan folder komponen
+import { useState, useEffect } from "react";
+import axios from "axios";
+import PeopleIcon from "@mui/icons-material/People";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import Grid from "@mui/material/Grid";
+import MDBox from "components/MDBox";
 
-const BendaharaDashboard = () => {
-  const [notifikasi, setNotifikasi] = useState([]);
-  const [infoSB, setInfoSB] = useState(false);
-  const [message, setMessage] = useState("");
+// Donasi Application React components
+import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import Footer from "examples/Footer";
+import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
+// Dashboard components
+import Projects from "layouts/dashboard_bendahara/components/Projects";
+import OrdersOverview from "layouts/dashboard_bendahara/components/OrdersOverview";
+
+function BendaharaDashboard() {
+  // State untuk menyimpan data dari backend
+  const [dashboardData, setDashboardData] = useState({
+    donaturTetap: 0,
+    totalDonasi: 0,
+    totalPengeluaran: 0,
+    saldo: 0,
+  });
+
+  // Ambil data dari backend saat komponen di-mount
   useEffect(() => {
-    const socket = io("http://localhost:5000");
+    const fetchDashboardData = async () => {
+      try {
+        // Ganti dengan URL API backend Anda
+        const response = await axios.get("http://localhost:3000/api/dashboard");
 
-    // Mendengarkan notifikasi untuk Bendahara
-    socket.on("new-pengajuan-bendahara", (data) => {
-      setMessage(data.pesan);
-      setNotifikasi((prevNotifikasi) => [...prevNotifikasi, data]);
-      setInfoSB(true);
-    });
-
-    return () => {
-      socket.disconnect();
+        // Perbarui state dengan data yang diterima
+        setDashboardData({
+          donaturTetap: response.data.donaturTetap,
+          totalDonasi: response.data.totalDonasi,
+          totalPengeluaran: response.data.totalPengeluaran,
+          saldo: response.data.saldo,
+        });
+      } catch (error) {
+        console.error("Terjadi kesalahan saat mengambil data dashboard:", error);
+      }
     };
+
+    fetchDashboardData();
   }, []);
 
-  const closeInfoSB = () => setInfoSB(false);
-
-  const renderInfoSB = (
-    <MDSnackbar
-      icon={<NotificationsIcon />}
-      title="Notifikasi Pengajuan"
-      content={message}
-      dateTime="Just now"
-      open={infoSB}
-      onClose={closeInfoSB}
-      close={closeInfoSB}
-    />
-  );
+  const formatRupiah = (angka) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    }).format(angka);
+  };
 
   return (
-    <Container>
-      <Box sx={{ paddingTop: 4, paddingBottom: 4 }}>
-        <Typography variant="h4" align="center" gutterBottom>
-          Dashboard Bendahara
-        </Typography>
-
+    <DashboardLayout>
+      <DashboardNavbar />
+      <MDBox py={3}>
         <Grid container spacing={3}>
-          {/* Section for Notifikasi */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <Box p={3}>
-                <Typography variant="h6" color="textSecondary">
-                  Notifikasi Pengajuan
-                </Typography>
-                {notifikasi.length === 0 ? (
-                  <Typography variant="body1">Tidak ada pengajuan baru.</Typography>
-                ) : (
-                  <Grid container spacing={2}>
-                    {notifikasi.map((item, index) => (
-                      <Grid item xs={12} key={index}>
-                        <Card sx={{ padding: 2, border: "1px solid #ddd", borderRadius: 1 }}>
-                          <Typography variant="body2">
-                            <strong>{item.pesan}</strong> (ID Pengajuan: {item.id_pengajuan})
-                          </Typography>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                )}
-              </Box>
-            </Card>
+          {/* Statistik Donatur Tetap */}
+          <Grid item xs={12} md={6} lg={3}>
+            <MDBox mb={1.5}>
+              <ComplexStatisticsCard
+                color="dark"
+                icon={<PeopleIcon />}
+                title="Donatur Tetap"
+                count={dashboardData.donaturTetap}
+                percentage={{
+                  color: "success",
+                }}
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  padding: 2,
+                  backgroundColor: "#333",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    boxShadow: 6,
+                    backgroundColor: "#444",
+                  },
+                }}
+              />
+            </MDBox>
           </Grid>
 
-          {/* Section for Simulate New Pengajuan */}
-          <Grid item xs={12} md={6}>
-            <Card>
-              <Box p={3} display="flex" flexDirection="column" alignItems="center">
-                <Typography variant="h6" color="textSecondary">
-                  Simulasikan Pengajuan Baru
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  sx={{ marginTop: 2 }}
-                  onClick={() => {
-                    // Men-trigger pengajuan baru dan notifikasi untuk Bendahara
-                    setMessage("Ada pengajuan baru yang perlu disetujui.");
-                    setNotifikasi([
-                      ...notifikasi,
-                      {
-                        pesan: "Pengajuan dengan ID 123 memerlukan persetujuan Bendahara.",
-                        id_pengajuan: 123,
-                      },
-                    ]);
-                    setInfoSB(true); // Simulasikan notifikasi info
-                  }}
-                >
-                  Simulasikan Pengajuan Baru
-                </Button>
-              </Box>
-            </Card>
+          {/* Statistik Total Donasi */}
+          <Grid item xs={12} md={6} lg={3}>
+            <MDBox mb={1.5}>
+              <ComplexStatisticsCard
+                icon={<AttachMoneyIcon />}
+                title="Total Donasi"
+                count={formatRupiah(dashboardData.totalDonasi)} // Format Rp
+                percentage={{
+                  color: "success",
+                }}
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  padding: 2,
+                  backgroundColor: "#1e88e5",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    boxShadow: 6,
+                    backgroundColor: "#1565c0",
+                  },
+                }}
+              />
+            </MDBox>
+          </Grid>
+
+          {/* Statistik Total Pengeluaran */}
+          <Grid item xs={12} md={6} lg={3}>
+            <MDBox mb={1.5}>
+              <ComplexStatisticsCard
+                color="success"
+                icon={<MonetizationOnIcon />}
+                title="Total Pengeluaran"
+                count={formatRupiah(dashboardData.totalPengeluaran)} // Format Rp
+                percentage={{
+                  color: "success",
+                }}
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  padding: 2,
+                  backgroundColor: "#28a745",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    boxShadow: 6,
+                    backgroundColor: "#218838",
+                  },
+                }}
+              />
+            </MDBox>
+          </Grid>
+
+          {/* Statistik Saldo Sekarang */}
+          <Grid item xs={12} md={6} lg={3}>
+            <MDBox mb={1.5}>
+              <ComplexStatisticsCard
+                color="primary"
+                icon={<AccountBalanceIcon />}
+                title="Saldo Sekarang"
+                count={formatRupiah(dashboardData.saldo)} // Format Rp
+                percentage={{
+                  color: "success",
+                }}
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  padding: 2,
+                  backgroundColor: "#ff9800",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    boxShadow: 6,
+                    backgroundColor: "#fb8c00",
+                  },
+                }}
+              />
+            </MDBox>
           </Grid>
         </Grid>
-      </Box>
 
-      {/* Menambahkan ikon lonceng dengan badge */}
-      <Box sx={{ position: "absolute", top: 10, right: 10 }}>
-        <Badge
-          badgeContent={notifikasi.length} // Menampilkan jumlah notifikasi
-          color="error"
-        >
-          <NotificationsIcon fontSize="large" />
-        </Badge>
-      </Box>
-
-      {renderInfoSB}
-    </Container>
+        {/* Bagian lain dari dashboard */}
+        <MDBox mt={4.5}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6} lg={8}>
+              <Projects />
+            </Grid>
+            <Grid item xs={12} md={6} lg={4}>
+              <OrdersOverview />
+            </Grid>
+          </Grid>
+        </MDBox>
+      </MDBox>
+      <Footer />
+    </DashboardLayout>
   );
-};
+}
 
 export default BendaharaDashboard;

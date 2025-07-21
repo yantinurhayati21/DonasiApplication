@@ -1,6 +1,7 @@
 import User from "../models/usersModel.js";
 import jwt from "jsonwebtoken";
 import argon2 from "argon2";
+import Donatur from "../models/donaturModel.js";
 
 // Get all users
 export const getAllUsers = async (req, res) => {
@@ -12,11 +13,11 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Get user by ID
-export const getUserById = async (req, res) => {
+// Get user by Email
+export const getUserByEmail = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await User.getById(id);
+    const user = await User.getUserByEmail(id);
     if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
     res.status(200).json(user);
   } catch (error) {
@@ -44,6 +45,20 @@ export const getPimpinan = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: "Pimpinan tidak ditemukan" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getPengurus = async (req, res) => {
+  try {
+    const user = await User.getPimpinan();
+
+    if (!user) {
+      return res.status(404).json({ message: "Pengurus tidak ditemukan" });
     }
 
     res.status(200).json(user);
@@ -85,27 +100,43 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// Login user
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.getByEmail(email);
-    if (!user) {
+    const user = await User.getUserByEmail(email);
+    const tipeDonatur = await Donatur.getByUserId(user.id_user);
+    if (!user)
       return res.status(404).json({ message: "Email tidak ditemukan" });
-    }
 
     const passwordMatch = await argon2.verify(user.password, password);
-    if (!passwordMatch) {
+    if (!passwordMatch)
       return res.status(401).json({ message: "Password salah" });
-    }
 
-    const { role } = user;
-    const token = jwt.sign({ email, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign(
+      { id_user: user.id_user, email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
-    res.status(200).json({ token, role });
+    console.log("Login sukses, id_user:", user.id_user);
+
+    res
+      .status(200)
+      .json({
+        token,
+        role: user.role,
+        id_user: user.id_user,
+        tipeDonatur: user.role === "Donatur"
+          ? tipeDonatur.jenis_donatur
+          : null,
+      });
   } catch (error) {
-    console.error("Login error:", error.message);
+    console.error("Login error:", error);
     res.status(500).json({ message: "Login gagal" });
   }
+};
+
+export const logoutUser = async (req, res) => {
+  res.status(200).json({ message: "Logout berhasil" });
 };

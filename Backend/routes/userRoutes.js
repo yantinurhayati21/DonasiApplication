@@ -3,7 +3,8 @@ import {
   getAllUsers,
   getBendahara,
   getPimpinan,
-  getUserById,
+  getPengurus,
+  getUserByEmail,
   createUser,
   updateUser,
   deleteUser,
@@ -16,7 +17,8 @@ const router = express.Router();
 router.get("/", getAllUsers);
 router.get("/bendahara", getBendahara);
 router.get("/pimpinan", getPimpinan);
-router.get("/:id", getUserById);
+router.get("/pengurus", getPengurus);
+router.get("/:id", getUserByEmail);
 router.post("/", createUser);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);

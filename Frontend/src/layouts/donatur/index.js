@@ -1,39 +1,42 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import Grid from "@mui/material/Grid";
-import Button from "@mui/material/Button";
-import AddIcon from "@mui/icons-material/Add";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
-import DonaturCard from "../../examples/Cards/DonaturCard";
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Button,
+  IconButton,
+  TextField,
+  TablePagination,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Grid,
+} from "@mui/material";
+import { Delete as DeleteIcon } from "@mui/icons-material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
+import axios from "axios";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import select from "assets/theme/components/form/select";
 
 function Donatur() {
   const [donaturList, setDonaturList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [open, setOpen] = useState(false);
-  const [selectedDonaturId, setSelectedDonaturId] = useState(null);
-  const [selectedDonatur, setSelectedDonatur] = useState(null);
-  const [newDonatur, setNewDonatur] = useState({
-    email: "",
-    password: "",
-    role: "Donatur", // Default role set to "Donatur"
-    nama: "",
-    no_rekening: "",
-    alamat: "",
-    no_telepon: "",
-    jenis_donatur: "",
-    status_aktif: true,
-  });
+  const [filterText, setFilterText] = useState(""); // Filter by Name
+  const [selectedJenisDonatur, setSelectedJenisDonatur] = useState(""); // Filter by Jenis Donatur
+  const [page, setPage] = useState(0); // Pagination
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [selectedDonaturIdForDelete, setSelectedDonaturIdForDelete] = useState(null);
+
+  const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
     fetchDonatur();
@@ -44,85 +47,75 @@ function Donatur() {
       .get("http://localhost:3000/api/donatur")
       .then((response) => {
         setDonaturList(response.data);
+        setFilteredData(response.data); // Initially, show all data
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Error fetching donatur data:", error);
         setError(error.message);
         setLoading(false);
       });
   };
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
-  const handleChange = (e) => {
-    setNewDonatur({ ...newDonatur, [e.target.name]: e.target.value });
+  const handleOpenConfirmDialog = (id) => {
+    setSelectedDonaturIdForDelete(id);
+    setOpenConfirmDialog(true);
   };
 
-  const handleSubmit = () => {
-    if (!newDonatur.email || !newDonatur.password || !newDonatur.nama || !newDonatur.no_telepon) {
-      alert("Please fill in all required fields");
+  const handleCloseConfirmDialog = () => {
+    setOpenConfirmDialog(false);
+    setSelectedDonaturIdForDelete(null);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!selectedDonaturIdForDelete) {
+      alert("ID Donatur tidak valid!");
       return;
     }
 
-    if (!newDonatur.role) {
-      newDonatur.role = "Donatur"; // Default role if not provided
+    const id = parseInt(selectedDonaturIdForDelete, 10);
+
+    if (isNaN(id)) {
+      alert("ID Donatur harus berupa angka!");
+      return;
     }
 
-    axios
-      .post("http://localhost:3000/api/donatur", newDonatur)
-      .then((response) => {
-        setDonaturList([...donaturList, response.data]);
-        handleClose();
-      })
-      .catch((error) => console.error("Error adding donatur:", error));
-  };
-
-  const handleEdit = (id) => {
-    axios
-      .get(`http://localhost:3000/api/donatur/${id}`)
-      .then((response) => {
-        setSelectedDonatur(response.data); // Set data donatur yang dipilih untuk diedit
-        setNewDonatur(response.data); // Isi form dengan data yang dipilih
-        setSelectedDonaturId(id); // Set ID untuk update
-        handleOpen(); // Buka dialog untuk edit
-      })
-      .catch((error) => console.error("Error fetching donatur for edit:", error));
-  };
-
-  const handleUpdate = () => {
-    // Destructure untuk menghapus password dari data yang akan dikirim
-    const { password, ...donaturDataToUpdate } = newDonatur;
-
-    // Pastikan role ada
-    if (!donaturDataToUpdate.role) {
-      donaturDataToUpdate.role = "Donatur"; // Default role jika tidak disediakan
+    try {
+      const response = await axios.delete(`http://localhost:3000/api/donatur/${id}`);
+      setDonaturList(donaturList.filter((donatur) => donatur.id_donatur !== id));
+      handleCloseConfirmDialog(); // Close dialog after deletion
+    } catch (error) {
+      console.error("Error deleting donatur:", error);
+      alert("Terjadi kesalahan saat menghapus donatur.");
     }
-
-    // Jika password kosong, gunakan password lama
-    if (!newDonatur.password) {
-      donaturDataToUpdate.password = selectedDonatur.password; // Gunakan password lama
-    }
-
-    // Kirimkan data yang sudah diperbarui tanpa password kosong
-    axios
-      .put(`http://localhost:3000/api/donatur/${selectedDonaturId}`, donaturDataToUpdate)
-      .then(() => {
-        fetchDonatur();
-        handleClose(); // Tutup dialog setelah update
-      })
-      .catch((error) => console.error("Error updating donatur:", error));
   };
 
-  const handleDelete = () => {
-    axios
-      .delete(`http://localhost:3000/api/donatur/${selectedDonaturId}`)
-      .then(() => {
-        fetchDonatur();
-        handleClose(); // Close dialog after delete
-      })
-      .catch((error) => console.error("Error deleting donatur:", error));
+  const handleSearch = () => {
+    setFilteredData([]);
+    const filteredDataWithSearch = donaturList.filter((donatur) => {
+      const matchesName = donatur.nama.toLowerCase().includes(filterText.toLowerCase());
+      const matchesJenisDonatur =
+        !selectedJenisDonatur || donatur.jenis_donatur === selectedJenisDonatur;
+
+      return matchesName && matchesJenisDonatur;
+    });
+    console.log(filteredDataWithSearch);
+    setFilteredData(filteredDataWithSearch);
+  };
+
+  const handleClearFilters = () => {
+    setFilterText("");
+    setSelectedJenisDonatur("");
+    setFilteredData([]);
+    setFilteredData(donaturList); // Reset to original data
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   return (
@@ -140,21 +133,94 @@ function Donatur() {
         p={2}
         boxShadow={3}
       >
-        <MDTypography variant="h4" fontWeight="bold" color="primary">
+        <MDTypography variant="h4" fontWeight="bold" color="3f51b5">
           Daftar Donatur
         </MDTypography>
-        <Button
-          variant="contained"
-          color="success"
-          startIcon={<AddIcon />}
-          onClick={handleOpen}
-          sx={{ fontSize: "16px", padding: "10px 20px", borderRadius: 3, boxShadow: 3 }}
-        >
-          Tambah Donatur
-        </Button>
       </MDBox>
 
-      <MDBox p={4} bgcolor="#ffffff" borderRadius={2} boxShadow={3}>
+      <Card sx={{ padding: 4, marginTop: 2, boxShadow: 3, borderRadius: 2, bgcolor: "#ffffff" }}>
+        {/* Filter Inputs (side by side) */}
+        <Grid container spacing={2} sx={{ marginBottom: 3 }}>
+          <Grid item xs={12} sm={6}>
+            <Typography variant="body1" sx={{ marginBottom: 1, fontWeight: "bold" }}>
+              Nama Donatur
+            </Typography>
+            <TextField
+              label="Filter by Name"
+              fullWidth
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography
+              variant="body1"
+              sx={{ marginBottom: 2, fontWeight: "bold", fontSize: "1.1rem" }}
+            >
+              Jenis Donatur
+            </Typography>
+            <FormControl fullWidth>
+              <InputLabel>Jenis Donatur</InputLabel>
+              <Select
+                value={selectedJenisDonatur}
+                onChange={(e) => setSelectedJenisDonatur(e.target.value)}
+                label="Jenis Donatur"
+                sx={{
+                  padding: "12px 16px",
+                  fontSize: "1.2rem",
+                  backgroundColor: "#f4f4f9",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                  "& .MuiSelect-icon": {
+                    fontSize: "2rem",
+                  },
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px",
+                  },
+                }}
+              >
+                <MenuItem value="">Semua</MenuItem>
+                <MenuItem value="Tetap">Donatur Tetap</MenuItem>
+                <MenuItem value="Tidak Tetap">Donatur Tidak Tetap</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid container spacing={2} sx={{ marginTop: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{
+                  padding: "12px 24px",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                  borderRadius: "8px",
+                }}
+                onClick={handleSearch}
+              >
+                Search
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                fullWidth
+                sx={{
+                  padding: "12px 24px",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                  borderRadius: "8px",
+                }}
+                onClick={handleClearFilters}
+              >
+                Clear
+              </Button>
+            </Grid>
+          </Grid>
+        </Grid>
         {loading && (
           <MDTypography variant="h6" color="textSecondary">
             Loading...
@@ -166,102 +232,109 @@ function Donatur() {
           </MDTypography>
         )}
 
-        <DonaturCard
-          donaturList={donaturList} // Kirimkan daftar donatur ke DonaturCard
-          onEdit={handleEdit} // Kirimkan fungsi edit ke DonaturCard
-          onDelete={handleDelete} // Kirimkan fungsi delete ke DonaturCard
-        />
-      </MDBox>
+        <MDBox
+          component="div"
+          sx={{ overflowX: "auto", marginBottom: 3, overflowY: "auto", maxHeight: "600px" }}
+        >
+          <MDBox
+            component="div"
+            sx={{
+              display: "flex",
+              backgroundColor: "#f1f1f1",
+              padding: "12px",
+              borderRadius: 1,
+              fontWeight: "bold",
+              color: "#3f51b5",
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Nama</MDBox>
+            <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Email</MDBox>
+            <MDBox sx={{ flex: 1, padding: "8px 16px" }}>No Telepon</MDBox>
+            <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Jenis Donatur</MDBox>
+            <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Status</MDBox>
+            <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Aksi</MDBox>
+          </MDBox>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle variant="h5" fontWeight="bold" textAlign="center">
-          {selectedDonatur ? "Edit Donatur" : "Tambah Donatur"}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Nama"
-            name="nama"
-            fullWidth
-            margin="dense"
-            value={newDonatur.nama}
-            onChange={handleChange}
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Email"
-            name="email"
-            fullWidth
-            margin="dense"
-            value={newDonatur.email}
-            onChange={handleChange}
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
-          {!selectedDonatur && (
-            <TextField
-              label="Password"
-              name="password"
-              type="password"
-              fullWidth
-              margin="dense"
-              value={newDonatur.password}
-              onChange={handleChange}
-              variant="outlined"
-              sx={{ mb: 2 }}
-            />
+          {filteredData.length > 0 ? (
+            filteredData
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((donatur, index) => {
+                const globalIndex = page * rowsPerPage + index;
+                return (
+                  <>
+                    <MDBox
+                      key={donatur.id_user}
+                      component="div"
+                      sx={{
+                        display: "flex",
+                        padding: "12px 16px",
+                        backgroundColor: globalIndex % 2 === 0 ? "#f9f9f9" : "#fff",
+                        borderRadius: 1,
+                        boxShadow: 1,
+                        marginBottom: 1,
+                        "&:hover": {
+                          backgroundColor: "#e3f2fd",
+                          boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.15)",
+                        },
+                      }}
+                    >
+                      <MDBox sx={{ flex: 1, padding: "8px 16px" }}>{donatur.nama}</MDBox>
+                      <MDBox sx={{ flex: 1, padding: "8px 16px" }}>{donatur.email}</MDBox>
+                      <MDBox sx={{ flex: 1, padding: "8px 16px" }}>{donatur.no_telepon}</MDBox>
+                      <MDBox sx={{ flex: 1, padding: "8px 16px" }}>{donatur.jenis_donatur}</MDBox>
+                      <MDBox sx={{ flex: 1, padding: "8px 16px" }}>
+                        {donatur.status_aktif ? "Aktif" : "Tidak Aktif"}
+                      </MDBox>
+                      <MDBox sx={{ flex: 1, padding: "8px 16px" }}>
+                        <IconButton
+                          onClick={() => handleOpenConfirmDialog(donatur.id_donatur)}
+                          color="secondary"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </MDBox>
+                    </MDBox>
+                  </>
+                );
+              })
+          ) : (
+            <MDBox
+              component="div"
+              sx={{ display: "flex", padding: "12px 16px", justifyContent: "center" }}
+            >
+              <MDTypography variant="body2" color="text.secondary">
+                Tidak ada data donatur
+              </MDTypography>
+            </MDBox>
           )}
-          <TextField
-            label="No Rekening"
-            name="no_rekening"
-            fullWidth
-            margin="dense"
-            value={newDonatur.no_rekening}
-            onChange={handleChange}
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="No Telepon"
-            name="no_telepon"
-            fullWidth
-            margin="dense"
-            value={newDonatur.no_telepon}
-            onChange={handleChange}
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            select
-            label="Jenis Donatur"
-            name="jenis_donatur"
-            fullWidth
-            margin="dense"
-            value={newDonatur.jenis_donatur}
-            onChange={handleChange}
-            variant="outlined"
-            sx={{ mb: 2 }}
-          >
-            <MenuItem value="Tetap">Tetap</MenuItem>
-            <MenuItem value="Tidak Tetap">Tidak Tetap</MenuItem>
-          </TextField>
+        </MDBox>
+
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 50]}
+          component="div"
+          count={filteredData.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Konfirmasi Penghapusan</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            Apakah Anda yakin ingin menghapus donatur ini? Tindakan ini tidak bisa dibatalkan.
+          </Typography>
         </DialogContent>
-        <DialogActions sx={{ justifyContent: "center", paddingBottom: 2 }}>
-          <Button
-            onClick={handleClose}
-            color="secondary"
-            variant="outlined"
-            sx={{ padding: "8px 20px", borderRadius: 3 }}
-          >
+        <DialogActions>
+          <Button onClick={handleCloseConfirmDialog} color="primary">
             Batal
           </Button>
-          <Button
-            onClick={selectedDonatur ? handleUpdate : handleSubmit}
-            color="primary"
-            variant="contained"
-            sx={{ padding: "8px 20px", borderRadius: 3 }}
-          >
-            {selectedDonatur ? "Update" : "Simpan"}
+          <Button onClick={handleDeleteConfirmed} color="error">
+            Hapus
           </Button>
         </DialogActions>
       </Dialog>

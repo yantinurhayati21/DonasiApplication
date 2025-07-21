@@ -59,7 +59,7 @@ function Basic() {
         password,
       });
 
-      const { token, role } = response.data;
+      const { token, role, tipeDonatur, id_user } = response.data;
 
       // Simpan token ke cookie dan localStorage
       Cookies.set("token", token, {
@@ -68,6 +68,8 @@ function Basic() {
       });
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
+      localStorage.setItem("tipeDonatur", tipeDonatur);
+      localStorage.setItem("id_user", id_user);
 
       console.log("Login berhasil, token dan role disimpan");
 

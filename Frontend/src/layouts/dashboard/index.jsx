@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Grid, Typography, Button, Container, Box, Stack, Link } from "@mui/material";
 import Footer from "examples/Footer";
 import Slider from "react-slick";
-
+import { jwtDecode } from "jwt-decode";
 const Dashboard = () => {
   const carouselSettings = {
     dots: true,
@@ -13,6 +13,20 @@ const Dashboard = () => {
     autoplay: true,
     autoplaySpeed: 4000,
   };
+
+  useEffect(() => {
+    // Cek token dan decode untuk cek donatur tetap
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        // console.log("Decoded token payload:", decoded);
+        if (decoded.id_user) window.location.href = "/dashboard-donatur";
+      } catch {
+        console.error("Token tidak valid: id_user tidak ada");
+      }
+    }
+  }, []);
 
   return (
     <Box sx={{ bgcolor: "#f9f9f9", minHeight: "100vh" }}>
@@ -48,7 +62,7 @@ const Dashboard = () => {
       {/* Hero Banner */}
       <Box
         sx={{
-          backgroundImage: "url('/images/hero-donasi.png')",
+          backgroundImage: "url('/images/background-donasi.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           color: "white",

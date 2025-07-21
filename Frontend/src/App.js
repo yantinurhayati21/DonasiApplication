@@ -70,16 +70,83 @@ export default function App() {
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const [rtlCache, setRtlCache] = useState(null);
   const { pathname } = useLocation();
+  const role = localStorage.getItem("role");
+  const [routerList, setRouterList] = useState(routes);
 
-  // Cache for the rtl
-  useMemo(() => {
-    const cacheRtl = createCache({
-      key: "rtl",
-      stylisPlugins: [rtlPlugin],
+  useEffect(() => {
+    if (!role) {
+      // Jika ingin /donasi tetap bisa diakses walau tanpa role:
+      setRouterList(
+        routes.filter(
+          (route) =>
+            route.key === "dashboard" ||
+            route.key === "donasi" ||
+            route.key === "sign-in" ||
+            route.key === "sign-up" ||
+            route.key === "paymentGateway" ||
+            route.key === "tables"
+        )
+      );
+      return;
+    }
+
+    const normalizedRole = role.toLowerCase();
+
+    let filteredRoutes = [];
+
+    switch (normalizedRole) {
+      case "donatur":
+        filteredRoutes = routes.filter(
+          (route) =>
+            route.key === "donasi" ||
+            route.key === "dashboard_donatur" ||
+            route.key === "paymentGateway"
+        );
+        break;
+
+      case "bendahara":
+        filteredRoutes = routes.filter(
+          (route) =>
+            route.key === "dashboard_bendahara" ||
+            route.key === "billing" ||
+            route.key === "pengajuan-pengeluaran" ||
+            route.key === "list_pengajuan_bendahara"
+        );
+        break;
+
+      case "pimpinan":
+        filteredRoutes = routes.filter(
+          (route) =>
+            route.key === "dashboard_pimpinan" ||
+            route.key === "tables" ||
+            route.key === "notifications" ||
+            route.key === "list_pengajuan_pimpinan"
+        );
+        break;
+
+      case "pengurus":
+        filteredRoutes = routes.filter(
+          (route) =>
+            route.key === "dashboard_pengurus" ||
+            route.key === "donatur" ||
+            route.key === "doa" ||
+            route.key === "pengajuan-pengeluaran" ||
+            route.key === "list_pengajuan"
+        );
+        break;
+
+      default:
+        filteredRoutes = routes.filter((route) => route.key === "dashboard");
+    }
+
+    setRouterList((prev) => {
+      const isSame =
+        prev.length === filteredRoutes.length &&
+        prev.every((item, idx) => item.key === filteredRoutes[idx].key);
+      if (isSame) return prev;
+      return filteredRoutes;
     });
-
-    setRtlCache(cacheRtl);
-  }, []);
+  }, [role]);
 
   // Open sidenav when mouse enter on mini sidenav
   const handleOnMouseEnter = () => {
@@ -124,6 +191,12 @@ export default function App() {
       return null;
     });
 
+  document.body.onload = function () {
+    const script = document.createElement("script");
+    script.src = "http://localhost:3000/socket.io/socket.io.js";
+    document.body.appendChild(script);
+  };
+
   const configsButton = (
     <MDBox
       display="flex"
@@ -152,13 +225,13 @@ export default function App() {
     <CacheProvider value={rtlCache}>
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
-        {layout === "dashboard" && (
+        {layout === "dashboard" && location.pathname !== "/dashboard" && (
           <>
             <Sidenav
               color={sidenavColor}
               brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
               brandName="Donasi Application"
-              routes={routes}
+              routes={routerList}
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}
             />
@@ -168,7 +241,7 @@ export default function App() {
         )}
         {layout === "vr" && <Configurator />}
         <Routes>
-          {getRoutes(routes)}
+          {getRoutes(routerList)}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </ThemeProvider>
@@ -176,13 +249,13 @@ export default function App() {
   ) : (
     <ThemeProvider theme={darkMode ? themeDark : theme}>
       <CssBaseline />
-      {layout === "dashboard" && (
+      {layout === "dashboard" && location.pathname !== "/dashboard" && (
         <>
           <Sidenav
             color={sidenavColor}
             brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
             brandName="Donasi Application"
-            routes={routes}
+            routes={routerList}
             onMouseEnter={handleOnMouseEnter}
             onMouseLeave={handleOnMouseLeave}
           />
@@ -192,7 +265,7 @@ export default function App() {
       )}
       {layout === "vr" && <Configurator />}
       <Routes>
-        {getRoutes(routes)}
+        {getRoutes(routerList)}
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </ThemeProvider>

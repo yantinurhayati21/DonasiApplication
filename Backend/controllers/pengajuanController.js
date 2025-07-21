@@ -1,11 +1,26 @@
 import Pengajuan from "../models/pengajuanModel.js";
+import Notification from "../models/notificationsModel.js";
 import User from "../models/usersModel.js";
 import { io } from "../index.js";
+import multer from "multer";
+import path from "path";
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Tempat menyimpan file di server
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Menggunakan nama file unik
+  },
+});
+
+const upload = multer({ storage: storage });
+
 const createPengajuanWithDetail = async (req, res) => {
-  const { id_pengurus, tanggal, nominal_pengajuan, daftar_pengeluaran } = req.body;
+  const { id_user, tanggal, nominal_pengajuan, daftar_pengeluaran } = req.body;
 
   if (
-    !id_pengurus ||
+    !id_user ||
     !tanggal ||
     !nominal_pengajuan ||
     !Array.isArray(daftar_pengeluaran) ||
@@ -13,7 +28,8 @@ const createPengajuanWithDetail = async (req, res) => {
   ) {
     return res.status(400).json({
       status: "error",
-      message: "Data pengajuan dan daftar pengeluaran harus lengkap dan tidak kosong",
+      message:
+        "Data pengajuan dan daftar pengeluaran harus lengkap dan tidak kosong",
     });
   }
 
@@ -27,7 +43,8 @@ const createPengajuanWithDetail = async (req, res) => {
   if (totalHargaBarang > nominal_pengajuan) {
     return res.status(400).json({
       status: "error",
-      message: "Total harga barang tidak boleh lebih besar dari nominal pengajuan",
+      message:
+        "Total harga barang tidak boleh lebih besar dari nominal pengajuan",
     });
   }
 
@@ -61,7 +78,7 @@ const createPengajuanWithDetail = async (req, res) => {
 
   try {
     const result = await Pengajuan.createWithPengeluaran(
-      id_pengurus,
+      id_user,
       tanggal,
       nominal_pengajuan,
       daftar_pengeluaran,
@@ -71,21 +88,23 @@ const createPengajuanWithDetail = async (req, res) => {
     );
     const pengajuan = { id_pengajuan: result.id_pengajuan }; // Ambil ID pengajuan yang valid
     const bendahara = await User.getBendahara(); // Ambil data bendahara
-    const pimpinan = await User.getPimpinan(); // Ambil data pimpinan
+    // const pimpinan = await User.getPimpinan(); // Ambil data pimpinan
 
-    // Kirim notifikasi ke bendahara dan pimpinan
-    io.emit('new-pengajuan-bendahara', {
-      id_pengajuan: pengajuan.id_pengajuan,
-      pesan: `Ada pengajuan baru dengan ID ${pengajuan.id_pengajuan} yang perlu disetujui oleh Bendahara.`,
-      id_bendahara: bendahara.id_user, // ID bendahara untuk menargetkan yang tepat
-    });
-
-    // Kirim notifikasi ke pimpinan setelah bendahara approve
-    io.emit('new-pengajuan-pimpinan', {
-      id_pengajuan: pengajuan.id_pengajuan,
-      pesan: `Pengajuan dengan ID ${pengajuan.id_pengajuan} telah disetujui oleh Bendahara dan menunggu persetujuan Pimpinan.`,
-      id_pimpinan: pimpinan.id_user, // ID pimpinan untuk menargetkan yang tepat
-    });
+    if (nominal_pengajuan > 200000) {
+      // Kirim notifikasi ke bendahara
+      await Notification.createNotification(
+        bendahara.id_user,
+        `Ada pengajuan baru dengan ID ${pengajuan.id_pengajuan} yang perlu disetujui oleh Bendahara.`,
+        pengajuan.id_pengajuan
+      );
+      // Emit ke socket.io untuk pengiriman notifikasi dan data pengajuan secara real-time
+      io.emit("new-pengajuan-bendahara", {
+        id_pengajuan: pengajuan.id_pengajuan,
+        pesan: `Ada pengajuan baru dengan ID ${pengajuan.id_pengajuan} yang perlu disetujui oleh Bendahara.`,
+        id_bendahara: bendahara.id_user, // ID bendahara untuk menargetkan yang tepat
+        data: await Pengajuan.getAll(),
+      });
+    }
 
     res.status(201).json({
       status: "success",
@@ -97,6 +116,49 @@ const createPengajuanWithDetail = async (req, res) => {
     res.status(500).json({
       status: "error",
       message: "Gagal membuat pengajuan",
+    });
+  }
+};
+
+const loginBendahara = async (req, res) => {
+  const { id_bendahara } = req.body;
+
+  try {
+
+    // Ambil semua notifikasi yang belum dibaca untuk bendahara
+    const notifications = await Notification.getNotificationsByUserId(
+      id_bendahara
+    );
+
+    // Kirim notifikasi ke bendahara melalui Socket.io
+    if (notifications.length > 0) {
+      notifications.forEach((notification) => {
+        io.emit("new-notification", {
+          id_pengajuan: notification.ref_id,
+          message: notification.message,
+          id_user: id_bendahara,
+        });
+      });
+    }
+
+    // Ambil data pengajuan terbaru
+    const pengajuanTerbaru = await Pengajuan.getLatestPengajuanByBendahara(
+      id_bendahara
+    );
+
+    // Kirimkan data pengajuan terbaru ke bendahara
+    io.emit("pengajuan-terbaru", pengajuanTerbaru);
+
+    res.status(200).json({
+      status: "success",
+      message: "Login berhasil dan notifikasi telah dikirim",
+      pengajuanTerbaru: pengajuanTerbaru,
+    });
+  } catch (error) {
+    console.error("Error logging in bendahara:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Gagal mengambil notifikasi atau data pengajuan",
     });
   }
 };
@@ -122,6 +184,7 @@ const getPengajuanById = async (req, res) => {
 
   try {
     const data = await Pengajuan.getByIdWithDetails(id);
+    console.log(data);
     if (!data) {
       return res.status(404).json({
         status: "error",
@@ -137,6 +200,20 @@ const getPengajuanById = async (req, res) => {
     res.status(500).json({
       status: "error",
       message: "Gagal mengambil data pengajuan",
+    });
+  }
+};
+const getJumlahPengajuanMenungguBendahara = async (req, res) => {
+  try {
+    const result = await Pengajuan.countByStatus("menunggu_bendahara");
+    res.status(200).json({
+      status: "success",
+      jumlah: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Gagal mengambil jumlah pengajuan",
     });
   }
 };
@@ -159,9 +236,174 @@ const deletePengajuan = async (req, res) => {
   }
 };
 
+const validStatuses = ["diterima", "ditolak", "menunggu"];
+
+const approvalfromBendahara = async (req, res) => {
+  const id_pengajuan = req.params.id;
+  if (isNaN(id_pengajuan)) {
+    return res.status(400).json({
+      status: "error",
+      message: "ID Pengajuan tidak valid",
+    });
+  }
+  const { status } = req.body;
+
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({
+      status: "error",
+      message: "Status tidak valid",
+    });
+  }
+
+  try {
+    await Pengajuan.approvalByBendahara(id_pengajuan, status);
+
+    const pimpinan = await User.getPimpinan(); // Ambil data pimpinan
+    const pengurus = await User.getPengurus(); // Ambil data pengurus
+    const bendahara = await User.getBendahara(); // Ambil data bendahara
+    // Kirim notifikasi ke pimpinan setelah bendahara approve
+    
+    await Notification.updateNotificationsToRead(id_pengajuan,bendahara.id_user);
+    if (status === "diterima") {
+      // Kirim ke pimpinan
+      // Ubah status menjadi 'read' untuk notifikasi yang belum dibaca
+      await Notification.createNotification(
+        pimpinan.id_user,
+        `Pengajuan dengan ID ${id_pengajuan} telah disetujui oleh Bendahara dan menunggu persetujuan Pimpinan.`,
+        id_pengajuan
+      );
+      io.emit("new-pengajuan-pimpinan", {
+        id_pengajuan,
+        pesan: `Pengajuan dengan ID ${id_pengajuan} telah disetujui oleh Bendahara dan menunggu persetujuan Pimpinan.`,
+        id_pimpinan: pimpinan.id_user, // ID pimpinan untuk menargetkan yang tepat
+        data: await Pengajuan.getAll(),
+      });
+    } else if (status === "ditolak") {
+      // Kirim ke pengurus
+      // await Notification.createNotification(
+      //   pengurus.id_user,
+      //   `Pengajuan dengan ID ${id_pengajuan} ditolak oleh Bendahara.`,
+      //   id_pengajuan
+      // );
+      // io.emit("pengajuan-ditolak", {
+      //   id_pengajuan,
+      //   pesan: `Pengajuan dengan ID ${id_pengajuan} ditolak oleh Bendahara.`,
+      //   id_pengurus: pengurus.id_user, // ID pengurus untuk menargetkan yang tepat
+      // });
+    }
+    res.status(200).json({
+      status: "success",
+      message: "Status pengajuan berhasil diperbarui",
+    });
+  } catch (error) {
+    console.error("Error updating pengajuan status:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Gagal memperbarui status pengajuan",
+    });
+  }
+};
+
+const approvalfromPimpinan = async (req, res) => {
+  const id_pengajuan = parseInt(req.params.id, 10);
+  const { status } = req.body;
+
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({
+      status: "error",
+      message: "Status tidak valid",
+    });
+  }
+
+  try {
+    await Pengajuan.approvalByPimpinan(id_pengajuan, status);
+    const pengurus = await User.getPengurus(); // Ambil data pengurus
+    const pimpinan = await User.getPimpinan(); // Ambil data pengurus
+    const bendahara = await User.getBendahara(); // Ambil data bendahara
+    // Kirim notifikasi ke pengurus dan bendahara setelah pimpinan memberikan keputusan
+    // await Notification.createNotification(
+    //   pimpinan.id_user,
+    //   `Pimpinan telah memberikan keputusan untuk Pengajuan dengan ID ${id_pengajuan} `,
+    //   id_pengajuan
+    // );
+    await Notification.updateNotificationsToRead(id_pengajuan, pimpinan.id_user);
+
+    io.emit("pengajuan-diterima-ditolak", {
+      id_pengajuan,
+      pesan: `Pengajuan dengan ID ${id_pengajuan} telah disetujui/ditolak oleh Pimpinan.`,
+      id_bendahara: bendahara.id_user, // ID bendahara
+      id_pengurus: pengurus.id_user, // ID pengurus
+    });
+    res.status(200).json({
+      status: "success",
+      message: "Status pengajuan berhasil diperbarui",
+    });
+  } catch (error) {
+    console.error("Error updating pengajuan status:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Gagal memperbarui status pengajuan",
+    });
+  }
+};
+
+const getNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.getAllNotification();
+    res.status(200).json(notifications);
+  } catch (error) {
+    console.error("Error getting notifications:", error);
+    res
+      .status(500)
+      .json({ status: "error", message: "Gagal mendapatkan notifikasi" });
+  }
+};
+
+const updatePengajuan = async (req, res) => {
+  const { id_pengajuan, jumlah_pengeluaran, deskripsi, nama_act, harga_act } =
+    req.body;
+  const file = req.file ? req.file.path : null; // Menyimpan path file yang diupload
+
+  try {
+    const pengajuan = await Pengajuan.update(
+      id_pengajuan,
+      jumlah_pengeluaran,
+      deskripsi,
+      file,
+      JSON.parse(nama_act),
+      JSON.parse(harga_act)
+    );
+
+    if (pengajuan) {
+      return res.status(200).json({
+        status: "success",
+        message: "Pengajuan berhasil diperbarui",
+        data: pengajuan,
+      });
+    } else {
+      return res.status(404).json({
+        status: "error",
+        message: "Pengajuan tidak ditemukan",
+      });
+    }
+  } catch (error) {
+    console.error("Error updating pengajuan:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Terjadi kesalahan saat memperbarui pengajuan",
+    });
+  }
+};
+export const uploadFile = upload.single("file_bukti");
 export {
   createPengajuanWithDetail,
+  loginBendahara,
   getAllPengajuan,
   getPengajuanById,
+  getJumlahPengajuanMenungguBendahara,
   deletePengajuan,
+  approvalfromPimpinan,
+  approvalfromBendahara,
+  getNotifications,
+  updatePengajuan,
 };

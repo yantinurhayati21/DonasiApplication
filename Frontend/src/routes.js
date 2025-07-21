@@ -4,6 +4,9 @@ import DashboardBendahara from "layouts/dashboard_bendahara";
 import DashboardPimpinan from "layouts/dashboard_pimpinan";
 import DashboardDonatur from "layouts/dashboard_donatur";
 import DashboardPengurus from "layouts/dashboard_pengurus";
+import ListPengajuan from "layouts/dashboard_pengurus/listPengajuan";
+import ListPengajuanPimpinan from "layouts/dashboard_pimpinan/listPengajuanPimpinan";
+import ListPengajuanBendahara from "layouts/dashboard_bendahara/listPengajuanBendahara";
 import DonasiForm from "layouts/billing/components/Donasi/DonasiForm";
 import Donatur from "layouts/donatur";
 import PengajuanPengeluaran from "layouts/pengajuanPengeluaran/PengajuanForm";
@@ -21,6 +24,7 @@ import SignUp from "layouts/authentication/sign-up";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
+import SnapPayment from "layouts/billing/components/Donasi/PaymentGateway";
 
 const routes = [
   {
@@ -33,7 +37,7 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "DashboardBendahara",
+    name: "Dashboard Bendahara",
     key: "dashboard_bendahara",
     icon: <Icon fontSize="small">account_balance_wallet</Icon>,
     route: "/dashboard-bendahara",
@@ -41,7 +45,7 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "DashboardPimpinan",
+    name: "Dashboard Pimpinan",
     key: "dashboard_pimpinan",
     icon: <Icon fontSize="small">business</Icon>,
     route: "/dashboard-pimpinan",
@@ -49,7 +53,7 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "DashboardPengurus",
+    name: "Dashboard Pengurus",
     key: "dashboard_pengurus",
     icon: <Icon fontSize="small">supervised_user_circle</Icon>,
     route: "/dashboard-pengurus",
@@ -57,21 +61,44 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "DashboardDonatur",
+    name: "List Pengajuan Pengeluaran",
+    key: "list_pengajuan",
+    icon: <Icon fontSize="small">list</Icon>,
+    route: "/list-pengajuan",
+    component: <ListPengajuan />,
+  },
+  {
+    type: "collapse",
+    name: "Dashboard Donatur",
     key: "dashboard_donatur",
     icon: <Icon fontSize="small">favorite</Icon>,
     route: "/dashboard-donatur",
     component: <DashboardDonatur />,
   },
-
   {
     type: "collapse",
-    name: "Donatur",
-    key: "donatur",
-    icon: <Icon fontSize="small">donatur</Icon>,
-    route: "/donatur",
-    component: <Donatur />,
+    name: "List Pengajuan Pengeluaran",
+    key: "list_pengajuan_pimpinan",
+    icon: <Icon fontSize="small">list</Icon>,
+    route: "/list-pengajuan-pimpinan",
+    component: <ListPengajuanPimpinan />,
   },
+  {
+    type: "collapse",
+    name: "List Pengajuan Pengeluaran",
+    key: "list_pengajuan_bendahara",
+    icon: <Icon fontSize="small">list</Icon>,
+    route: "/list-pengajuan-bendara",
+    component: <ListPengajuanBendahara />,
+  },
+  // {
+  //   type: "collapse",
+  //   name: "Donatur",
+  //   key: "donatur",
+  //   icon: <Icon fontSize="small">person</Icon>,
+  //   route: "/donatur",
+  //   component: <Donatur />,
+  // },
   // {
   //   type: "collapse",
   //   name: "Pengeluaran",
@@ -80,14 +107,14 @@ const routes = [
   //   route: "/pengeluaran",
   //   component: <Pengeluaran />,
   // },
-  // {
-  //   type: "collapse",
-  //   name: "Dashboard",
-  //   key: "dashboard",
-  //   icon: <Icon fontSize="small">dashboard</Icon>,
-  //   route: "/payment/:token",
-  //   component: <PaymentGatway />,
-  // },
+  {
+    type: "collapse",
+    name: "Payment Gateway",
+    key: "paymentGateway",
+    icon: <Icon fontSize="small">attach_money</Icon>,
+    route: "/payment/:token",
+    component: <SnapPayment />,
+  },
   {
     type: "collapse",
     name: "Tables",
@@ -188,7 +215,7 @@ const routes = [
     type: "collapse",
     name: "Doa",
     key: "doa",
-    icon: <Icon fontSize="small">favorite</Icon>,
+    icon: <Icon fontSize="small">mosque</Icon>,
     route: "/doa",
     component: <Doa />,
   },

@@ -1,193 +1,312 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Button,
+  Box,
   TextField,
-  MenuItem,
+  Button,
+  Typography,
   Select,
+  MenuItem,
   InputLabel,
   FormControl,
-  Grid,
-  Typography,
-  Container,
+  Checkbox,
+  ListItemText,
+  OutlinedInput,
+  FormHelperText,
+  Alert,
+  Stack,
 } from "@mui/material";
 import axios from "axios";
+import * as yup from "yup";
+import { jwtDecode } from "jwt-decode";
 
-const DonasiForm = () => {
-  const [jenisDonatur, setJenisDonatur] = useState("Tidak Tetap");
+const schemaTidakTetap = yup.object().shape({
+  nama: yup.string().required("Nama wajib diisi"),
+  email: yup.string().email("Email tidak valid").required("Email wajib diisi"),
+  alamat: yup.string().required("Alamat wajib diisi"),
+  noTelepon: yup.string().required("No telepon wajib diisi"),
+  nominal: yup
+    .number()
+    .typeError("Nominal harus angka")
+    .positive("Nominal harus positif")
+    .required("Nominal wajib diisi"),
+  doaPilihan: yup.array().min(1, "Pilih minimal satu doa").required("Doa wajib diisi"),
+  doaSpesific: yup.string(),
+});
+
+const schemaTetap = yup.object().shape({
+  nominal: yup
+    .number()
+    .typeError("Nominal harus angka")
+    .positive("Nominal harus positif")
+    .required("Nominal wajib diisi"),
+  doaPilihan: yup.array().min(1, "Pilih minimal satu doa").required("Doa wajib diisi"),
+  doaSpesific: yup.string(),
+});
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
+
+export default function DonationForm() {
+  const [isDonaturTetap, setIsDonaturTetap] = useState(false);
   const [nama, setNama] = useState("");
   const [email, setEmail] = useState("");
   const [alamat, setAlamat] = useState("");
   const [noTelepon, setNoTelepon] = useState("");
   const [nominal, setNominal] = useState("");
-  const [password, setPassword] = useState(""); // Tambahkan state untuk password
-  const [errorMessage, setErrorMessage] = useState("");
-  const [token, setToken] = useState(null);
+  const [doaList, setDoaList] = useState([]);
+  const [doaPilihan, setDoaPilihan] = useState([]);
+  const [doaSpesific, setDoaSpesific] = useState("");
+  const [errors, setErrors] = useState({});
+  const [submitStatus, setSubmitStatus] = useState(null);
+
+  useEffect(() => {
+    // Cek token dan decode untuk cek donatur tetap
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        console.log("Decoded token payload:", decoded);
+        if (decoded.id_user) setIsDonaturTetap(true);
+      } catch {
+        setIsDonaturTetap(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Fetch doa dari API
+    axios
+      .get("http://localhost:3000/api/doa") // sesuaikan url backend-mu
+      .then((res) => setDoaList(res.data))
+      .catch(() => setDoaList([]));
+  }, []);
+
+  const validate = async () => {
+    try {
+      if (isDonaturTetap) {
+        await schemaTetap.validate(
+          { nominal: Number(nominal), doaPilihan, doaSpesific },
+          { abortEarly: false }
+        );
+      } else {
+        await schemaTidakTetap.validate(
+          {
+            nama,
+            email,
+            alamat,
+            noTelepon,
+            nominal: Number(nominal),
+            doaPilihan,
+            doaSpesific,
+          },
+          { abortEarly: false }
+        );
+      }
+      setErrors({});
+      return true;
+    } catch (err) {
+      const formErrors = {};
+      err.inner.forEach((e) => {
+        formErrors[e.path] = e.message;
+      });
+      setErrors(formErrors);
+      return false;
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const isValid = await validate();
+    if (!isValid) return;
 
-    if (!nominal || isNaN(nominal) || nominal <= 0) {
-      setErrorMessage("Nominal donasi tidak valid");
-      return;
-    }
-    if (jenisDonatur !== "Tetap" && jenisDonatur !== "Tidak Tetap") {
-      setErrorMessage("Jenis donatur tidak valid");
-      return;
-    }
-    const donasiData = {
-      jenis_donatur: jenisDonatur,
-      nama: nama,
-      email: email,
-      alamat: alamat,
-      no_telepon: noTelepon,
-      nominal: nominal,
-      tanggal_donasi: new Date().toISOString().split("T")[0],
-    };
+    const payload = isDonaturTetap
+      ? {
+          jenis_donatur: "Tetap",
+          nominal: Number(nominal),
+          doa_pilihan: doaPilihan,
+          doa_spesific: doaSpesific,
+        }
+      : {
+          jenis_donatur: "Tidak Tetap",
+          nama,
+          email,
+          alamat,
+          no_telepon: noTelepon,
+          nominal: Number(nominal),
+          doa_pilihan: doaPilihan,
+          doa_spesific: doaSpesific,
+        };
 
     try {
-      const response = await axios.post("http://localhost:3000/api/donasi/payment", donasiData, {
-        withCredentials: true,
-      });
-      setToken(response.data.data.token);
-      localStorage.setItem("donasiData", JSON.stringify(donasiData));
-      location.href = "/payment/" + response.data.data.token;
-      setErrorMessage("");
+      const url = isDonaturTetap
+        ? "http://localhost:3000/api/donasi"
+        : "http://localhost:3000/api/donasi/tidak-tetap";
+
+      const headers = {};
+      if (isDonaturTetap) {
+        const token = localStorage.getItem("token");
+        if (token) headers.Authorization = `Bearer ${token}`;
+      }
+
+      const res = await axios.post(url, payload, { headers });
+      console.log("Response from server:", res.data);
+      localStorage.setItem("donasiId", res.data.data.donasiId);
+      localStorage.setItem("tipeDonatur", res.data.data.jenisDonatur);
+      console.log("Jenis Donatur:", res.data.data.jenisDonatur);
+
+      setSubmitStatus({ success: true, message: "Donasi berhasil dibuat!" });
+      // Reset form jika ingin
+      setNominal("");
+      setDoaPilihan([]);
+      setDoaSpesific("");
+      if (!isDonaturTetap) {
+        setNama("");
+        setEmail("");
+        setAlamat("");
+        setNoTelepon("");
+      }
+      window.location.href = "/payment/" + res.data.data.token;
     } catch (error) {
-      console.error("Error creating transaction", error);
-      setErrorMessage("Terjadi kesalahan. Silakan coba lagi.");
+      console.error(error);
+      setSubmitStatus({
+        success: false,
+        message: error.response?.data?.message || "Terjadi kesalahan saat submit donasi.",
+      });
     }
   };
 
   return (
-    <Container maxWidth="sm" style={{ marginTop: "20px" }}>
-      <Typography variant="h4" component="h1" align="center" gutterBottom>
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        maxWidth: 600,
+        margin: "auto",
+        padding: 3,
+        backgroundColor: "#fff",
+        borderRadius: 2,
+        boxShadow: 3,
+      }}
+      noValidate
+    >
+      <Typography variant="h4" mb={3} textAlign="center" fontWeight="bold">
         Form Donasi
       </Typography>
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
-          {/* Jenis Donatur */}
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Jenis Donatur</InputLabel>
-              <Select
-                value={jenisDonatur}
-                onChange={(e) => setJenisDonatur(e.target.value)}
-                label="Jenis Donatur"
-                required
-              >
-                <MenuItem value="Tetap">Donatur Tetap</MenuItem>
-                <MenuItem value="Tidak Tetap">Donatur Tidak Tetap</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
 
-          {/* Nama */}
-          {jenisDonatur === "Tidak Tetap" && (
-            <Grid item xs={12}>
-              <TextField
-                label="Nama"
-                variant="outlined"
-                fullWidth
-                value={nama}
-                onChange={(e) => setNama(e.target.value)}
-                required
-              />
-            </Grid>
-          )}
+      {!isDonaturTetap && (
+        <>
+          <TextField
+            label="Nama"
+            fullWidth
+            margin="normal"
+            value={nama}
+            onChange={(e) => setNama(e.target.value)}
+            error={Boolean(errors.nama)}
+            helperText={errors.nama}
+          />
+          <TextField
+            label="Email"
+            type="email"
+            fullWidth
+            margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={Boolean(errors.email)}
+            helperText={errors.email}
+          />
+          <TextField
+            label="Alamat"
+            fullWidth
+            margin="normal"
+            multiline
+            minRows={2}
+            value={alamat}
+            onChange={(e) => setAlamat(e.target.value)}
+            error={Boolean(errors.alamat)}
+            helperText={errors.alamat}
+          />
+          <TextField
+            label="No Telepon"
+            fullWidth
+            margin="normal"
+            value={noTelepon}
+            onChange={(e) => setNoTelepon(e.target.value)}
+            error={Boolean(errors.noTelepon)}
+            helperText={errors.noTelepon}
+          />
+        </>
+      )}
 
-          {/* Email */}
-          {jenisDonatur === "Tidak Tetap" && (
-            <Grid item xs={12}>
-              <TextField
-                label="Email"
-                variant="outlined"
-                fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </Grid>
-          )}
+      <TextField
+        label="Nominal Donasi"
+        type="number"
+        fullWidth
+        margin="normal"
+        value={nominal}
+        onChange={(e) => setNominal(e.target.value)}
+        error={Boolean(errors.nominal)}
+        helperText={errors.nominal}
+      />
 
-          {/* Alamat */}
-          {jenisDonatur === "Tidak Tetap" && (
-            <Grid item xs={12}>
-              <TextField
-                label="Alamat"
-                variant="outlined"
-                fullWidth
-                value={alamat}
-                onChange={(e) => setAlamat(e.target.value)}
-                required
-              />
-            </Grid>
-          )}
+      <FormControl fullWidth margin="normal" error={Boolean(errors.doaPilihan)}>
+        <InputLabel id="doa-pilihan-label">Pilih Doa</InputLabel>
+        <Select
+          labelId="doa-pilihan-label"
+          multiple
+          value={doaPilihan}
+          onChange={(e) =>
+            setDoaPilihan(
+              typeof e.target.value === "string" ? e.target.value.split(",") : e.target.value
+            )
+          }
+          input={<OutlinedInput label="Pilih Doa" />}
+          renderValue={(selected) =>
+            doaList
+              .filter((doa) => selected.includes(doa.id_doa))
+              .map((doa) => doa.nama_doa)
+              .join(", ")
+          }
+          MenuProps={MenuProps}
+        >
+          {doaList.map((doa) => (
+            <MenuItem key={doa.id_doa} value={doa.id_doa}>
+              <Checkbox checked={doaPilihan.indexOf(doa.id_doa) > -1} />
+              <ListItemText primary={doa.nama_doa} />
+            </MenuItem>
+          ))}
+        </Select>
+        <FormHelperText>{errors.doaPilihan}</FormHelperText>
+      </FormControl>
 
-          {/* No Telepon */}
-          {jenisDonatur === "Tidak Tetap" && (
-            <Grid item xs={12}>
-              <TextField
-                label="No Telepon"
-                variant="outlined"
-                fullWidth
-                value={noTelepon}
-                onChange={(e) => setNoTelepon(e.target.value)}
-                required
-              />
-            </Grid>
-          )}
+      <TextField
+        label="Doa Spesific"
+        fullWidth
+        margin="normal"
+        multiline
+        minRows={3}
+        value={doaSpesific}
+        onChange={(e) => setDoaSpesific(e.target.value)}
+      />
 
-          {/* Password - Hanya tampil jika Donatur Tetap */}
-          {jenisDonatur === "Tetap" && (
-            <Grid item xs={12}>
-              <TextField
-                label="Password"
-                variant="outlined"
-                fullWidth
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </Grid>
-          )}
+      <Stack mt={3} spacing={2}>
+        <Button variant="contained" type="submit" size="large" fullWidth>
+          Kirim Donasi
+        </Button>
 
-          {/* Nominal Donasi */}
-          <Grid item xs={12}>
-            <TextField
-              label="Nominal"
-              variant="outlined"
-              fullWidth
-              type="number"
-              value={nominal}
-              onChange={(e) => setNominal(e.target.value)}
-              required
-            />
-          </Grid>
-
-          {/* Tombol Kirim */}
-          <Grid item xs={12}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              style={{ padding: "10px" }}
-            >
-              Kirim
-            </Button>
-          </Grid>
-        </Grid>
-
-        {/* Menampilkan Pesan Error */}
-        {errorMessage && (
-          <Typography color="error" align="center">
-            {errorMessage}
-          </Typography>
+        {submitStatus && (
+          <Alert severity={submitStatus.success ? "success" : "error"}>
+            {submitStatus.message}
+          </Alert>
         )}
-      </form>
-    </Container>
+      </Stack>
+    </Box>
   );
-};
-
-export default DonasiForm;
+}

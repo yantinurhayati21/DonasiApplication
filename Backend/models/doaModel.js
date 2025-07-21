@@ -21,7 +21,7 @@ const Doa = {
 
   update: async (id, nama_doa, isi_doa) => {
     const result = await pool.query(
-      "UPDATE Doa SET nama_doa = $1, isi_doa = $2, updated_at = NOW() WHERE id_doa = $3 RETURNING *",
+      "UPDATE Doa SET nama_doa = $1, isi_doa = $2 WHERE id_doa = $3 RETURNING *",
       [nama_doa, isi_doa, id]
     );
     return result.rows[0];

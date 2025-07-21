@@ -1,7 +1,7 @@
 import express from "express";
 import {
   getAllDonatur,
-  getDonaturById,
+  getByUserId,
   createDonatur,
   updateDonatur,
   deleteDonatur
@@ -13,10 +13,10 @@ const router = express.Router();
 router.get("/", getAllDonatur);
 
 // Route to get a specific Donatur by ID
-router.get("/:id", getDonaturById);
+router.get("/:id", getByUserId);
 
 // Route to create a new Donatur (also creates a user in the 'users' table)
-router.post("/", createDonatur);
+router.post("/register", createDonatur);
 
 // Route to update an existing Donatur (also updates the corresponding user in the 'users' table)
 router.put("/:id", updateDonatur);

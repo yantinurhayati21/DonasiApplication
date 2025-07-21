@@ -1,150 +1,171 @@
-/**
-=========================================================
-* Donasi Application React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// @mui material components
+import { useState, useEffect } from "react";
+import axios from "axios";
+import PeopleIcon from "@mui/icons-material/People";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import Grid from "@mui/material/Grid";
-
-// Donasi Application React components
 import MDBox from "components/MDBox";
 
-// Donasi Application React example components
+// Donasi Application React components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
-import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
-
-// Data
-// import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
-// import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 
 // Dashboard components
 import Projects from "layouts/dashboard_pimpinan/components/Projects";
 import OrdersOverview from "layouts/dashboard_pimpinan/components/OrdersOverview";
 
-function Dashboard() {
-  const { sales, tasks } = reportsLineChartData;
+function PimpinanDashboard() {
+  // State untuk menyimpan data dari backend
+  const [dashboardData, setDashboardData] = useState({
+    donaturTetap: 0,
+    totalDonasi: 0,
+    totalPengeluaran: 0,
+    saldo: 0,
+  });
+
+  // Ambil data dari backend saat komponen di-mount
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Ganti dengan URL API backend Anda
+        const response = await axios.get("http://localhost:3000/api/dashboard");
+
+        // Perbarui state dengan data yang diterima
+        setDashboardData({
+          donaturTetap: response.data.donaturTetap,
+          totalDonasi: response.data.totalDonasi,
+          totalPengeluaran: response.data.totalPengeluaran,
+          saldo: response.data.saldo,
+        });
+      } catch (error) {
+        console.error("Terjadi kesalahan saat mengambil data dashboard:", error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const formatRupiah = (angka) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    }).format(angka);
+  };
 
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox py={3}>
         <Grid container spacing={3}>
+          {/* Statistik Donatur Tetap */}
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="dark"
-                icon="weekend"
+                icon={<PeopleIcon />}
                 title="Donatur Tetap"
-                count={281}
+                count={dashboardData.donaturTetap}
                 percentage={{
                   color: "success",
-                  amount: "+55%",
-                  label: "than lask week",
+                }}
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  padding: 2,
+                  backgroundColor: "#333",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    boxShadow: 6,
+                    backgroundColor: "#444",
+                  },
                 }}
               />
             </MDBox>
           </Grid>
+
+          {/* Statistik Total Donasi */}
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
-                icon="leaderboard"
+                icon={<AttachMoneyIcon />}
                 title="Total Donasi"
-                count="2,300"
+                count={formatRupiah(dashboardData.totalDonasi)} // Format Rp
                 percentage={{
                   color: "success",
-                  amount: "+3%",
-                  label: "than last month",
+                }}
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  padding: 2,
+                  backgroundColor: "#1e88e5",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    boxShadow: 6,
+                    backgroundColor: "#1565c0",
+                  },
                 }}
               />
             </MDBox>
           </Grid>
+
+          {/* Statistik Total Pengeluaran */}
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="success"
-                icon="store"
+                icon={<MonetizationOnIcon />}
                 title="Total Pengeluaran"
-                count="34k"
+                count={formatRupiah(dashboardData.totalPengeluaran)} // Format Rp
                 percentage={{
                   color: "success",
-                  amount: "+1%",
-                  label: "than yesterday",
+                }}
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  padding: 2,
+                  backgroundColor: "#28a745",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    boxShadow: 6,
+                    backgroundColor: "#218838",
+                  },
                 }}
               />
             </MDBox>
           </Grid>
+
+          {/* Statistik Saldo Sekarang */}
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="primary"
-                icon="person_add"
+                icon={<AccountBalanceIcon />}
                 title="Saldo Sekarang"
-                count="+91"
+                count={formatRupiah(dashboardData.saldo)} // Format Rp
                 percentage={{
                   color: "success",
-                  amount: "",
-                  label: "Just updated",
+                }}
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  padding: 2,
+                  backgroundColor: "#ff9800",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    boxShadow: 6,
+                    backgroundColor: "#fb8c00",
+                  },
                 }}
               />
             </MDBox>
           </Grid>
         </Grid>
+
+        {/* Bagian lain dari dashboard */}
         <MDBox mt={4.5}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsBarChart
-                  color="info"
-                  title="website views"
-                  description="Last Campaign Performance"
-                  date="campaign sent 2 days ago"
-                  chart={reportsBarChartData}
-                />
-              </MDBox>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                  color="success"
-                  title="daily sales"
-                  description={
-                    <>
-                      (<strong>+15%</strong>) increase in today sales.
-                    </>
-                  }
-                  date="updated 4 min ago"
-                  chart={sales}
-                />
-              </MDBox>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                  color="dark"
-                  title="completed tasks"
-                  description="Last Campaign Performance"
-                  date="just updated"
-                  chart={tasks}
-                />
-              </MDBox>
-            </Grid>
-          </Grid>
-        </MDBox>
-        <MDBox>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={8}>
               <Projects />
@@ -160,4 +181,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default PimpinanDashboard;

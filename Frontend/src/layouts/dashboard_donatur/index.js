@@ -1,22 +1,5 @@
-/**
-=========================================================
-* Donasi Application React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// @mui material components
 import Grid from "@mui/material/Grid";
-
-// Donasi Application React components
+// // Donasi Application React components
 import MDBox from "components/MDBox";
 
 // Donasi Application React example components
@@ -28,8 +11,8 @@ import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
 // Data
-// import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
-// import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
+import reportsBarChartData from "layouts/dashboard_donatur/data/reportsBarChartData";
+import reportsLineChartData from "layouts/dashboard_donatur/data/reportsLineChartData";
 
 // Dashboard components
 import Projects from "layouts/dashboard_donatur/components/Projects";
