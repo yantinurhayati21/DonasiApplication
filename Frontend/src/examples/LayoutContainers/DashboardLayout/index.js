@@ -7,18 +7,12 @@
 * Copyright 2023 Creative Tim (https://www.creative-tim.com)
 
 Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+=========================================================
 */
 
+// React & Router
 import { useEffect } from "react";
-
-// react-router-dom components
 import { useLocation } from "react-router-dom";
-
-// prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
 
 // Donasi Application React components
@@ -26,6 +20,10 @@ import MDBox from "components/MDBox";
 
 // Donasi Application React context
 import { useMaterialUIController, setLayout } from "context";
+
+// Navbar & Footer
+import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import Footer from "examples/Footer";
 
 function DashboardLayout({ children }) {
   const [controller, dispatch] = useMaterialUIController();
@@ -39,19 +37,28 @@ function DashboardLayout({ children }) {
   return (
     <MDBox
       sx={({ breakpoints, transitions, functions: { pxToRem } }) => ({
-        p: 3,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        padding: pxToRem(24),
         position: "relative",
-
-        [breakpoints.up("xl")]: {
-          marginLeft: miniSidenav ? pxToRem(120) : pxToRem(274),
-          transition: transitions.create(["margin-left", "margin-right"], {
-            easing: transitions.easing.easeInOut,
-            duration: transitions.duration.standard,
-          }),
-        },
+        marginLeft: breakpoints.up("xl") ? (miniSidenav ? pxToRem(120) : pxToRem(274)) : 0,
+        transition: transitions.create(["margin-left", "margin-right"], {
+          easing: transitions.easing.easeInOut,
+          duration: transitions.duration.standard,
+        }),
       })}
     >
-      {children}
+      {/* Navbar */}
+      <DashboardNavbar />
+
+      {/* Main Content */}
+      <MDBox component="main" flex="1" mt={2}>
+        {children}
+      </MDBox>
+
+      {/* Footer stays at the bottom */}
+      <Footer />
     </MDBox>
   );
 }

@@ -15,12 +15,12 @@ import {
   Alert,
   Stack,
 } from "@mui/material";
+import Chip from "@mui/material/Chip";
+import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
 import * as yup from "yup";
 import { jwtDecode } from "jwt-decode";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 const schemaTidakTetap = yup.object().shape({
   nama: yup.string().required("Nama wajib diisi"),
   email: yup.string().email("Email tidak valid").required("Email wajib diisi"),
@@ -133,7 +133,7 @@ export default function DonationForm() {
       ? {
           jenis_donatur: "Tetap",
           nominal: Number(nominal),
-          doa_pilihan: doaPilihan,
+          doa_pilihan: doaPilihan.map(Number),
           doa_spesific: doaSpesific,
         }
       : {
@@ -143,7 +143,7 @@ export default function DonationForm() {
           alamat,
           no_telepon: noTelepon,
           nominal: Number(nominal),
-          doa_pilihan: doaPilihan,
+          doa_pilihan: doaPilihan.map(Number),
           doa_spesific: doaSpesific,
         };
 
@@ -162,7 +162,7 @@ export default function DonationForm() {
       console.log("Response from server:", res.data);
       localStorage.setItem("donasiId", res.data.data.donasiId);
       localStorage.setItem("tipeDonatur", res.data.data.jenisDonatur);
-      console.log("Jenis Donatur:", res.data.data.jenisDonatur);
+      // console.log("Jenis Donatur:", res.data.data.jenisDonatur);
 
       setSubmitStatus({ success: true, message: "Donasi berhasil dibuat!" });
       // Reset form jika ingin
@@ -187,7 +187,6 @@ export default function DonationForm() {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -265,7 +264,7 @@ export default function DonationForm() {
           helperText={errors.nominal}
         />
 
-        <FormControl fullWidth margin="normal" error={Boolean(errors.doaPilihan)}>
+        {/* <FormControl fullWidth margin="normal" error={Boolean(errors.doaPilihan)}>
           <InputLabel id="doa-pilihan-label">Pilih Doa</InputLabel>
           <Select
             labelId="doa-pilihan-label"
@@ -289,6 +288,78 @@ export default function DonationForm() {
             {doaList.map((doa) => (
               <MenuItem key={doa.id_doa} value={doa.id_doa}>
                 <Checkbox checked={doaPilihan.indexOf(doa.id_doa) > -1} />
+                <ListItemText primary={doa.nama_doa} />
+              </MenuItem>
+            ))}
+          </Select>
+          <FormHelperText>{errors.doaPilihan}</FormHelperText>
+        </FormControl> */}
+        <FormControl
+          fullWidth
+          margin="normal"
+          error={Boolean(errors.doaPilihan)}
+          sx={{
+            backgroundColor: "#f4f4f9",
+            borderRadius: "8px",
+          }}
+        >
+          <InputLabel id="doa-pilihan-label">Pilih Doa</InputLabel>
+          <Select
+            labelId="doa-pilihan-label"
+            multiple
+            value={doaPilihan}
+            onChange={(e) =>
+              setDoaPilihan(
+                typeof e.target.value === "string"
+                  ? e.target.value.split(",")
+                  : e.target.value.map(String)
+              )
+            }
+            input={
+              <OutlinedInput
+                label="Pilih Doa"
+                sx={{
+                  minHeight: 90,
+                  paddingY: 1,
+                  alignItems: "flex-start",
+                }}
+              />
+            }
+            renderValue={(selected) => (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 0.75,
+                }}
+              >
+                {doaList
+                  .filter((doa) => selected.includes(String(doa.id_doa)))
+                  .map((doa) => (
+                    <Chip
+                      key={doa.id_doa}
+                      label={doa.nama_doa}
+                      size="medium"
+                      sx={{
+                        fontSize: "0.95rem",
+                        fontWeight: 500,
+                      }}
+                    />
+                  ))}
+              </Box>
+            )}
+            MenuProps={{
+              PaperProps: {
+                style: {
+                  maxHeight: 48 * 4.5 + 8,
+                  width: 250,
+                },
+              },
+            }}
+          >
+            {doaList.map((doa) => (
+              <MenuItem key={doa.id_doa} value={String(doa.id_doa)}>
+                <Checkbox checked={doaPilihan.includes(String(doa.id_doa))} />
                 <ListItemText primary={doa.nama_doa} />
               </MenuItem>
             ))}
@@ -318,7 +389,6 @@ export default function DonationForm() {
           )}
         </Stack>
       </Box>
-      <Footer />
     </DashboardLayout>
   );
 }

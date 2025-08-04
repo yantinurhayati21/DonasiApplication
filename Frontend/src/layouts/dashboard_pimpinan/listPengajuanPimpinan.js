@@ -27,7 +27,6 @@ import {
   InputLabel,
   InputAdornment,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import {
   Notifications as NotificationsIcon,
   Close as CloseIcon,
@@ -39,8 +38,7 @@ import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
+import { CheckCircleOutline, CancelOutlined } from "@mui/icons-material";
 const ListPengajuanPimpinan = () => {
   const [notifikasi, setNotifikasi] = useState([]);
   const [infoSB, setInfoSB] = useState(false);
@@ -52,10 +50,15 @@ const ListPengajuanPimpinan = () => {
   const [pengeluaranList, setPengeluaranList] = useState([]);
   const [loadingPengeluaran, setLoadingPengeluaran] = useState(false);
   const [selectedApproval, setSelectedApproval] = useState("");
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState({ id_pengajuan: null, value: "" });
+  const [successApproval, setSuccessApproval] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filterText, setFilterText] = useState("");
-
+  const [filterDate, setFilterDate] = useState("");
+  const [inputFilterDate, setInputFilterDate] = useState("");
+  const [inputSelectedApproval, setInputSelectedApproval] = useState("");
   const API_BASE_URL = "http://localhost:3000/api";
   const role = localStorage.getItem("role");
 
@@ -77,12 +80,38 @@ const ListPengajuanPimpinan = () => {
 
   // Filtered Data for Table
   const filteredData = pengajuanList.filter((pengajuan) => {
-    return (
-      String(pengajuan.id_pengajuan).toLowerCase().includes(filterText.toLowerCase()) || // Ensure it is a string
-      new Date(pengajuan.tanggal).toLocaleDateString().includes(filterText.toLowerCase()) ||
-      pengajuan.status_pengajuan.toLowerCase().includes(filterText.toLowerCase())
-    );
+    // Filter berdasarkan Tanggal Pengajuan
+    const matchesDate = filterDate
+      ? new Date(pengajuan.tanggal).toLocaleDateString() ===
+        new Date(filterDate).toLocaleDateString()
+      : true;
+
+    // Filter berdasarkan Status Pengajuan
+    let approvalValue = selectedApproval;
+    if (selectedApproval && typeof selectedApproval === "object" && selectedApproval.value) {
+      approvalValue = selectedApproval.value;
+    }
+    const matchesStatus =
+      !approvalValue || pengajuan.status_pengajuan.toLowerCase() === approvalValue.toLowerCase();
+
+    return matchesDate && matchesStatus;
   });
+
+  // Saat tombol Search diklik, terapkan filter dari input
+  const handleSearch = () => {
+    setFilterDate(inputFilterDate);
+    setSelectedApproval(inputSelectedApproval);
+    setPage(0); // Reset pagination
+  };
+
+  // Saat tombol Clear diklik, reset semua input dan filter
+  const handleClearFilters = () => {
+    setInputSelectedApproval("");
+    setInputFilterDate("");
+    setSelectedApproval("");
+    setFilterDate("");
+    setPage(0); // Reset pagination
+  };
 
   const fetchPengajuan = async () => {
     try {
@@ -110,7 +139,7 @@ const ListPengajuanPimpinan = () => {
     const socket = io("http://localhost:3000");
 
     socket.on("pengajuan-diterima-pimpinan", (data) => {
-      console.log("Pengajuan baru:", data);
+      // console.log("Pengajuan baru:", data);
       setMessage(data.pesan);
       // setNotifikasi((prev) => [...prev, data]);
       setPengajuanList(data.data || []);
@@ -168,23 +197,42 @@ const ListPengajuanPimpinan = () => {
     setSelectedPengajuan(null);
     setPengeluaranList([]);
   };
-  // Handle perubahan status approval
-  const handleApprovalChange = async (id_pengajuan, status) => {
+  // Handler untuk perubahan combobox, tampilkan dialog konfirmasi
+  const handleApprovalSelect = (id_pengajuan, value) => {
+    setPendingApproval({ id_pengajuan, value });
+    setOpenConfirmDialog(true);
+  };
+
+  // Handler konfirmasi update status
+  const handleConfirmApproval = async () => {
+    setOpenConfirmDialog(false);
+    const { id_pengajuan, value } = pendingApproval;
     try {
       const res = await axios.put(`${API_BASE_URL}/pengajuan/pimpinan/${id_pengajuan}`, {
-        status,
+        status: value,
       });
-      console.log(res);
       if (res.data.status === "success") {
-        // Setelah berhasil, update status pengajuan di frontend
         setPengajuanList([]);
         fetchPengajuan();
-        alert("Status pengajuan berhasil diperbarui");
+        setSelectedApproval("");
+        setInputSelectedApproval("");
+        setSuccessApproval({ status: value });
       }
     } catch (error) {
-      console.error("Error updating pengajuan status:", error);
       alert("Gagal memperbarui status pengajuan");
     }
+    setPendingApproval({ id_pengajuan: null, value: "" });
+  };
+
+  // Handler batal konfirmasi
+  const handleCancelApproval = () => {
+    setOpenConfirmDialog(false);
+    setPendingApproval({ id_pengajuan: null, value: "" });
+  };
+
+  // Handler tutup dialog sukses
+  const handleCloseSuccessApproval = () => {
+    setSuccessApproval(null);
   };
 
   const renderInfoSB = (
@@ -201,20 +249,129 @@ const ListPengajuanPimpinan = () => {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
       <Container sx={{ pb: 6 }} maxWidth="xl">
         {/* Your top content */}
         <MDBox sx={{ pt: 2, pb: 2, textAlign: "center" }}>
           <Badge badgeContent={notifikasi.length} color="error" sx={{ mb: 1 }}>
             <NotificationsIcon fontSize="large" />
           </Badge>
-          <MDTypography variant="h4" gutterBottom>
-            Dashboard Pimpinan
-          </MDTypography>
         </MDBox>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} alignItems="center" sx={{ marginBottom: 2 }}>
+          {/* Filter by Status Pengajuan */}
+          <Grid item xs={12} sm={6} md={4}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: "bold", minWidth: "140px", whiteSpace: "nowrap" }}
+              >
+                Status Pengajuan
+              </Typography>
+              <FormControl sx={{ flex: 1 }}>
+                <InputLabel>Status Pengajuan</InputLabel>
+                <Select
+                  value={inputSelectedApproval}
+                  onChange={(e) => setInputSelectedApproval(e.target.value)}
+                  label="Status Pengajuan"
+                  sx={{
+                    padding: "10px 12px",
+                    fontSize: "1rem",
+                    backgroundColor: "#f4f4f9",
+                    borderRadius: "8px",
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px",
+                    },
+                  }}
+                >
+                  <MenuItem value="">Semua</MenuItem>
+                  <MenuItem value="menunggu_bendahara">Menunggu Bendahara</MenuItem>
+                  <MenuItem value="menunggu_pimpinan">Menunggu Pimpinan</MenuItem>
+                  <MenuItem value="diterima">Diterima</MenuItem>
+                  <MenuItem value="ditolak_bendahara">Ditolak Bendahara</MenuItem>
+                  <MenuItem value="ditolak_pimpinan">Ditolak Pimpinan</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </Grid>
+
+          {/* Filter by Tanggal Pengajuan */}
+          <Grid item xs={12} sm={6} md={4}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: "bold", minWidth: "180px", whiteSpace: "nowrap" }}
+              >
+                Tanggal Pengajuan
+              </Typography>
+              <TextField
+                label="Filter Tanggal Pengajuan"
+                variant="outlined"
+                size="small"
+                type="date"
+                fullWidth
+                value={inputFilterDate}
+                onChange={(e) => setInputFilterDate(e.target.value)}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{
+                  backgroundColor: "#f4f4f9",
+                  borderRadius: "8px",
+                }}
+              />
+            </Box>
+          </Grid>
+        </Grid>
+
+        {/* Search and Clear Buttons */}
+        <Grid container spacing={2} sx={{ pl: { xs: 0, sm: 2 }, mt: 1, mb: 3 }}>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              sx={{
+                backgroundColor: "#90caf9",
+                color: "#fff",
+                padding: "10px 32px",
+                minWidth: 140,
+                fontSize: "0.95rem",
+                fontWeight: "bold",
+                borderRadius: "8px",
+                textTransform: "none",
+                "&:hover": {
+                  backgroundColor: "#64b5f6",
+                },
+              }}
+              onClick={handleSearch}
+            >
+              Search
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="outlined"
+              color="secondary"
+              sx={{
+                padding: "10px 32px",
+                color: "#666",
+                minWidth: 140,
+                fontSize: "0.95rem",
+                fontWeight: "bold",
+                borderRadius: "8px",
+                textTransform: "none",
+                borderColor: "#aaa",
+                "&:hover": {
+                  borderColor: "#666",
+                },
+              }}
+              onClick={handleClearFilters}
+            >
+              Clear
+            </Button>
+          </Grid>
+        </Grid>
+        <Grid container spacing={2} sx={{ width: "100%", maxWidth: "100%" }}>
           <Grid item xs={12}>
-            <Card sx={{ p: 3, boxShadow: 3, borderRadius: 2 }}>
+            <Card sx={{ p: 3, boxShadow: 3, borderRadius: 2, width: "100%" }}>
               <MDTypography variant="h6" mb={2} sx={{ color: "#3f51b5", fontWeight: "bold" }}>
                 Daftar Pengajuan
               </MDTypography>
@@ -229,23 +386,6 @@ const ListPengajuanPimpinan = () => {
                 </MDTypography>
               ) : (
                 <>
-                  {/* Filter Input */}
-                  <TextField
-                    label="Filter"
-                    variant="outlined"
-                    size="small"
-                    sx={{ marginBottom: 2, width: "100%" }}
-                    value={filterText}
-                    onChange={handleFilterChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-
                   {/* Table Content */}
                   <MDBox component="div" sx={{ overflowX: "auto", marginBottom: 3 }}>
                     {/* Header */}
@@ -261,7 +401,7 @@ const ListPengajuanPimpinan = () => {
                       <MDBox
                         sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
                       >
-                        ID Pengajuan
+                        No
                       </MDBox>
                       <MDBox
                         sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
@@ -309,107 +449,113 @@ const ListPengajuanPimpinan = () => {
                     </MDBox>
 
                     {/* Data Rows */}
-                    {filteredData
-                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                      .map((pengajuan) => {
-                        const isCurrentApproval =
-                          selectedApproval?.id_pengajuan === pengajuan.id_pengajuan;
-                        return (
-                          <MDBox
-                            component="div"
-                            sx={{
-                              display: "flex",
-                              padding: "12px 16px",
-                              backgroundColor: "#fff",
-                              borderRadius: 1,
-                              marginBottom: 1,
-                              boxShadow: 1,
-                              "&:hover": { backgroundColor: "#f9f9f9" },
-                            }}
-                            key={pengajuan.id_pengajuan}
-                          >
-                            <MDBox sx={{ flex: 1 }}>{pengajuan.id_pengajuan}</MDBox>
-                            <MDBox sx={{ flex: 1 }}>
-                              {new Date(pengajuan.tanggal).toLocaleDateString()}
-                            </MDBox>
-                            <MDBox sx={{ flex: 1 }}>
-                              Rp {Number(pengajuan.nominal_pengajuan).toLocaleString("id-ID")}
-                            </MDBox>
-                            <MDBox sx={{ flex: 1 }}>
-                              <MDBadge
-                                badgeContent={pengajuan.status_pengajuan.replace(/_/g, " ")}
-                                color={
-                                  pengajuan.status_pengajuan === "diterima"
-                                    ? "success"
-                                    : pengajuan.status_pengajuan === "ditolak"
-                                    ? "error"
-                                    : "default"
-                                }
-                                variant="gradient"
-                                size="sm"
-                              />
-                            </MDBox>
-                            <MDBox sx={{ flex: 1 }}>{pengajuan.approved_from_bendahara}</MDBox>
-                            {role === "Pimpinan" && (
+                    {filteredData.length === 0 ? (
+                      <MDTypography
+                        variant="body2"
+                        color="textSecondary"
+                        sx={{ textAlign: "center", margin: "32px 0" }}
+                      >
+                        Data Tidak Ditemukan
+                      </MDTypography>
+                    ) : (
+                      filteredData
+                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                        .map((pengajuan, index) => {
+                          const isCurrentApproval =
+                            selectedApproval?.id_pengajuan === pengajuan.id_pengajuan;
+                          return (
+                            <MDBox
+                              component="div"
+                              sx={{
+                                display: "flex",
+                                padding: "12px 16px",
+                                backgroundColor: "#fff",
+                                borderRadius: 1,
+                                marginBottom: 1,
+                                boxShadow: 1,
+                                "&:hover": { backgroundColor: "#f9f9f9" },
+                              }}
+                              key={pengajuan.id_pengajuan}
+                            >
+                              <MDBox sx={{ flex: 1 }}>{index + 1}</MDBox>
                               <MDBox sx={{ flex: 1 }}>
-                                {pengajuan.status_pengajuan === "menunggu_pimpinan" ? (
-                                  <FormControl fullWidth size="small">
-                                    <InputLabel>Status Approval</InputLabel>
-                                    <Select
-                                      label="Status Approval"
-                                      value={isCurrentApproval ? selectedApproval.value : ""}
-                                      onChange={(e) => {
-                                        setSelectedApproval({
-                                          id_pengajuan: pengajuan.id_pengajuan,
-                                          value: e.target.value,
-                                        });
-                                        handleApprovalChange(
-                                          pengajuan.id_pengajuan,
-                                          e.target.value
-                                        );
-                                      }}
-                                    >
-                                      <MenuItem value="diterima">Diterima</MenuItem>
-                                      <MenuItem value="ditolak">Ditolak</MenuItem>
-                                    </Select>
-                                  </FormControl>
-                                ) : (
-                                  <MDTypography>
-                                    {pengajuan.status_pengajuan.replace(/_/g, " ")}
-                                  </MDTypography>
-                                )}
+                                {new Date(pengajuan.tanggal).toLocaleDateString()}
                               </MDBox>
-                            )}
-                            <MDBox sx={{ flex: 1, textAlign: "center" }}>
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                sx={{
-                                  textTransform: "none",
-                                  borderRadius: 2,
-                                  padding: "6px 16px",
-                                  border: "2px solid #3f51b5",
-                                  color: "#3f51b5",
-                                  fontWeight: "bold",
-                                  fontSize: "14px",
-                                  "&:hover": {
-                                    backgroundColor: "#3f51b5",
-                                    color: "#fff",
-                                    borderColor: "#3f51b5",
-                                  },
-                                  "&:active": {
-                                    backgroundColor: "#303f9f",
-                                    color: "#fff",
-                                  },
-                                }}
-                                onClick={() => handleOpenDetail(pengajuan)}
-                              >
-                                Detail
-                              </Button>
+                              <MDBox sx={{ flex: 1 }}>
+                                Rp {Number(pengajuan.nominal_pengajuan).toLocaleString("id-ID")}
+                              </MDBox>
+                              <MDBox sx={{ flex: 1 }}>
+                                <MDBadge
+                                  badgeContent={pengajuan.status_pengajuan.replace(/_/g, " ")}
+                                  color={
+                                    pengajuan.status_pengajuan === "diterima"
+                                      ? "success"
+                                      : pengajuan.status_pengajuan === "ditolak"
+                                      ? "error"
+                                      : "default"
+                                  }
+                                  variant="gradient"
+                                  size="sm"
+                                />
+                              </MDBox>
+                              <MDBox sx={{ flex: 1 }}>{pengajuan.approved_from_bendahara}</MDBox>
+                              {role === "Pimpinan" && (
+                                <MDBox sx={{ flex: 1 }}>
+                                  {pengajuan.status_pengajuan === "menunggu_pimpinan" ? (
+                                    <FormControl fullWidth size="small">
+                                      <InputLabel>Status Approval</InputLabel>
+                                      <Select
+                                        label="Status Approval"
+                                        value={isCurrentApproval ? selectedApproval.value : ""}
+                                        onChange={(e) => {
+                                          handleApprovalSelect(
+                                            pengajuan.id_pengajuan,
+                                            e.target.value
+                                          );
+                                        }}
+                                      >
+                                        <MenuItem value="diterima">Diterima</MenuItem>
+                                        <MenuItem value="ditolak">Ditolak</MenuItem>
+                                      </Select>
+                                    </FormControl>
+                                  ) : (
+                                    <MDTypography>
+                                      {pengajuan.status_pengajuan.replace(/_/g, " ")}
+                                    </MDTypography>
+                                  )}
+                                </MDBox>
+                              )}
+                              <MDBox sx={{ flex: 1, textAlign: "center" }}>
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    textTransform: "none",
+                                    borderRadius: 2,
+                                    padding: "6px 16px",
+                                    border: "2px solid #3f51b5",
+                                    color: "#3f51b5",
+                                    fontWeight: "bold",
+                                    fontSize: "14px",
+                                    "&:hover": {
+                                      backgroundColor: "#3f51b5",
+                                      color: "#fff",
+                                      borderColor: "#3f51b5",
+                                    },
+                                    "&:active": {
+                                      backgroundColor: "#303f9f",
+                                      color: "#fff",
+                                    },
+                                  }}
+                                  onClick={() => handleOpenDetail(pengajuan)}
+                                >
+                                  Detail
+                                </Button>
+                              </MDBox>
                             </MDBox>
-                          </MDBox>
-                        );
-                      })}
+                          );
+                        })
+                    )}
                   </MDBox>
 
                   {/* Pagination */}
@@ -680,8 +826,75 @@ const ListPengajuanPimpinan = () => {
           </DialogContent>
         </Dialog>
         {renderInfoSB}
+        {/* Dialog Konfirmasi Approval */}
+        <Dialog open={openConfirmDialog} onClose={handleCancelApproval} keepMounted>
+          <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1, color: "#ff9800" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Margin sx={{ fontSize: 32, color: "#ff9800" }} />
+              Konfirmasi Status Pengajuan
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" sx={{ mb: 2, color: "#333", fontWeight: "500" }}>
+              Apakah Anda yakin ingin{" "}
+              <span
+                style={{
+                  fontWeight: "bold",
+                  color: pendingApproval.value === "diterima" ? "#4caf50" : "#d32f2f",
+                }}
+              >
+                {pendingApproval.value === "diterima" ? "menerima" : "menolak"}
+              </span>{" "}
+              pengajuan ini?
+              <br />
+              <span style={{ color: "#d32f2f", fontWeight: "bold" }}>
+                Data yang sudah dipilih tidak bisa diubah.
+              </span>
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancelApproval} color="secondary" variant="outlined">
+              Batal
+            </Button>
+            <Button onClick={handleConfirmApproval} color="primary" variant="contained">
+              Ya
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog Sukses Setelah Approval */}
+        <Dialog open={!!successApproval} onClose={handleCloseSuccessApproval} keepMounted>
+          <DialogTitle
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              color: successApproval?.status === "diterima" ? "#4caf50" : "#d32f2f",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              {successApproval?.status === "diterima" ? (
+                <CheckCircleOutline sx={{ fontSize: 32, color: "#4caf50" }} />
+              ) : (
+                <CancelOutlined sx={{ fontSize: 32, color: "#d32f2f" }} />
+              )}
+              {successApproval?.status === "diterima" ? "Pengajuan Diterima" : "Pengajuan Ditolak"}
+            </Box>
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body1" sx={{ mb: 2, color: "#333", fontWeight: "500" }}>
+              {successApproval?.status === "diterima"
+                ? "Pengajuan berhasil diterima. Data tidak dapat diubah kembali."
+                : "Pengajuan berhasil ditolak. Data tidak dapat diubah kembali."}
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseSuccessApproval} color="primary" variant="contained">
+              Tutup
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
-      <Footer />
     </DashboardLayout>
   );
 };

@@ -57,7 +57,6 @@ function PengurusDashboard() {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
       <MDBox py={3}>
         <Grid container spacing={3}>
           {/* Statistik Donatur Tetap */}
@@ -176,7 +175,6 @@ function PengurusDashboard() {
           </Grid>
         </MDBox>
       </MDBox>
-      <Footer />
     </DashboardLayout>
   );
 }

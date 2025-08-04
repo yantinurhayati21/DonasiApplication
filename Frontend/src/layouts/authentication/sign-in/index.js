@@ -27,8 +27,8 @@ import MuiLink from "@mui/material/Link";
 
 // @mui icons
 import FacebookIcon from "@mui/icons-material/Facebook";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import GoogleIcon from "@mui/icons-material/Google";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 // Donasi Application React components
 import MDBox from "components/MDBox";
@@ -47,9 +47,6 @@ function Basic() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-
-  const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   const handleSignin = async (e) => {
     e.preventDefault();
@@ -107,22 +104,43 @@ function Basic() {
           textAlign="center"
         >
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-            Sign in
+            Log In
           </MDTypography>
           <Grid container spacing={3} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
             <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="#" variant="body1" color="white">
-                <FacebookIcon color="inherit" />
+              <MDTypography
+                component={MuiLink}
+                href="https://www.facebook.com/istanayatimdhuafabandung"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="body1"
+                color="white"
+              >
+                <FacebookIcon fontSize="small" />
               </MDTypography>
             </Grid>
             <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="#" variant="body1" color="white">
-                <GitHubIcon color="inherit" />
+              <MDTypography
+                component={MuiLink}
+                href="https://www.instagram.com/explore/locations/2112842308942776/istana-yatim-dhuafa-parompong-bandung/"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="body1"
+                color="white"
+              >
+                <InstagramIcon fontSize="small" />
               </MDTypography>
             </Grid>
             <Grid item xs={2}>
-              <MDTypography component={MuiLink} href="#" variant="body1" color="white">
-                <GoogleIcon color="inherit" />
+              <MDTypography
+                component={MuiLink}
+                href="https://www.google.com/maps?q=Istana+Yatim+Dhuafa+Parompong+Bandung"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="body1"
+                color="white"
+              >
+                <LocationOnIcon fontSize="small" />
               </MDTypography>
             </Grid>
           </Grid>
@@ -147,22 +165,9 @@ function Basic() {
                 fullWidth
               />
             </MDBox>
-
-            <MDBox display="flex" alignItems="center" ml={-1}>
-              <Switch checked={rememberMe} onChange={handleSetRememberMe} />
-              <MDTypography
-                variant="button"
-                fontWeight="regular"
-                color="text"
-                onClick={handleSetRememberMe}
-                sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-              >
-                &nbsp;&nbsp;Remember me
-              </MDTypography>
-            </MDBox>
             <MDBox mt={4} mb={1}>
               <MDButton variant="gradient" color="info" fullWidth onClick={handleSignin}>
-                sign in
+                log in
               </MDButton>
               {error && (
                 <MDTypography
@@ -178,7 +183,7 @@ function Basic() {
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
-                Don&apos;t have an account?{" "}
+                Tidak punya akun?{" "}
                 <MDTypography
                   component={Link}
                   to="/authentication/sign-up"
@@ -187,7 +192,7 @@ function Basic() {
                   fontWeight="medium"
                   textGradient
                 >
-                  Sign up
+                  Register sekarang
                 </MDTypography>
               </MDTypography>
             </MDBox>

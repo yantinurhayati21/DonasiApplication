@@ -55,6 +55,8 @@ import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "co
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 
+import { jwtDecode } from "jwt-decode";
+
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
   const {
@@ -88,7 +90,6 @@ export default function App() {
       );
       return;
     }
-
     const normalizedRole = role.toLowerCase();
 
     let filteredRoutes = [];
@@ -98,9 +99,10 @@ export default function App() {
         filteredRoutes = routes.filter(
           (route) =>
             route.key === "donasi" ||
+            route.key === "laporan-keuangan" ||
             route.key === "dashboard_donatur" ||
-            route.key === "paymentGateway" ||
-            route.key === "donasi-bendahara"
+            route.key === "riwayat-donasi-pribadi" ||
+            route.key === "paymentGateway"
         );
         break;
 
@@ -109,8 +111,7 @@ export default function App() {
           (route) =>
             route.key === "dashboard_bendahara" ||
             route.key === "list_pengajuan_bendahara" ||
-            route.key === "donasi-bendahara" ||
-            route.key === "laporan-donasi"
+            route.key === "riwayat-donasi"
         );
         break;
 
@@ -118,8 +119,9 @@ export default function App() {
         filteredRoutes = routes.filter(
           (route) =>
             route.key === "dashboard_pimpinan" ||
-            route.key === "notifications" ||
-            route.key === "list_pengajuan_pimpinan"
+            route.key === "riwayat-donasi" ||
+            route.key === "list_pengajuan_pimpinan" ||
+            route.key === "laporan-keuangan"
         );
         break;
 
@@ -128,9 +130,9 @@ export default function App() {
           (route) =>
             route.key === "dashboard_pengurus" ||
             route.key === "donatur" ||
-            route.key === "doa" ||
+            route.key === "list_pengajuan" ||
             route.key === "pengajuan-pengeluaran" ||
-            route.key === "list_pengajuan"
+            route.key === "doa"
         );
         break;
 
@@ -189,12 +191,6 @@ export default function App() {
 
       return null;
     });
-
-  document.body.onload = function () {
-    const script = document.createElement("script");
-    script.src = "http://localhost:3000/socket.io/socket.io.js";
-    document.body.appendChild(script);
-  };
 
   const configsButton = (
     <MDBox

@@ -48,8 +48,6 @@ const Dashboard = () => {
     },
   ];
 
-  // currentSlide state sudah dipindahkan ke atas agar afterChange bekerja benar
-
   useEffect(() => {
     // Check token and decode to check donor status
     const token = localStorage.getItem("token");
@@ -71,17 +69,34 @@ const Dashboard = () => {
         sx={{
           display: "flex",
           justifyContent: "flex-end",
+          alignItems: "center",
           px: 4,
           py: 2,
-          bgcolor: "white",
-          boxShadow: 1,
+          bgcolor: "white", // Tetap putih untuk latar belakang utama
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          borderRadius: "0 0 8px 8px",
         }}
       >
         <Stack direction="row" spacing={3}>
           <Link
             href="/authentication/sign-in"
             underline="none"
-            sx={{ fontWeight: "bold", color: "primary.main", fontSize: "1rem" }}
+            sx={{
+              fontWeight: "bold",
+              color: "#ffffff", // Warna teks putih
+              fontSize: "1.1rem",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              px: 2.5,
+              py: 1,
+              bgcolor: "#FF7043", // Oranye hanya di sekitar tulisan
+              borderRadius: "15px",
+              transition: "background-color 0.3s, transform 0.2s",
+              "&:hover": {
+                bgcolor: "#F4511E", // Warna hover lebih gelap
+                transform: "scale(1.05)", // Sedikit efek zoom saat hover
+              },
+            }}
           >
             Login
           </Link>
@@ -111,16 +126,29 @@ const Dashboard = () => {
             background: "rgba(0, 0, 0, 0.5)",
           }}
         />
+        {/* rettier-ignore */}
         <Container maxWidth="md">
           <Typography
             variant="h3"
             fontWeight="bold"
             gutterBottom
-            sx={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
+            sx={{
+              textShadow: "2px 2px 4px rgba(0,0,0,0.7)",
+              color: "#ffffff", // Warna putih
+              fontSize: "3rem",
+            }}
           >
             Bantu Masa Depan Mereka
           </Typography>
-          <Typography variant="h6" mb={5} sx={{ textShadow: "1px 1px 3px rgba(0,0,0,0.5)" }}>
+          <Typography
+            variant="h6"
+            mb={5}
+            sx={{
+              textShadow: "1px 1px 3px rgba(0,0,0,0.5)",
+              color: "#ffffff", // Warna putih
+              fontSize: "1.4rem",
+            }}
+          >
             Donasi Anda berarti harapan baru untuk anak yatim dan dhuafa. Mari bersama kita wujudkan
             pesantren mandiri dan berdaya.
           </Typography>
@@ -203,21 +231,24 @@ const Dashboard = () => {
           <Slider {...carouselSettings}>
             {slides.map((slide, idx) => {
               // Mapping visual position: left, center, right
-              let pos = "hidden";
+              let pos = "hidden"; // Default position for all slides
+
               if (slides.length === 1) {
-                pos = "center";
+                pos = "center"; // If there's only one slide, it should always be in the center
               } else if (slides.length === 2) {
-                pos = idx === currentSlide ? "center" : "right";
+                // If there are 2 slides, let's set the positions for left and right based on the currentSlide
+                pos = idx === currentSlide ? "center" : "right"; // The currentSlide is in the center
               } else {
-                // react-slick centerMode: currentSlide is always the center
+                // For more than 2 slides, we calculate the positions
                 if (idx === currentSlide) {
-                  pos = "center";
+                  pos = "center"; // This is the current (centered) slide
                 } else if (idx === (currentSlide - 1 + slides.length) % slides.length) {
-                  pos = "left";
+                  pos = "left"; // This is the previous slide, which should be on the left
                 } else if (idx === (currentSlide + 1) % slides.length) {
-                  pos = "right";
+                  pos = "right"; // This is the next slide, which should be on the right
                 }
               }
+
               return (
                 <Box
                   key={slide.title}
@@ -254,7 +285,7 @@ const Dashboard = () => {
                       transition: "all 0.4s cubic-bezier(.4,2,.6,1)",
                     }}
                   />
-                  {pos === "center" && (
+                  {pos === "right" && (
                     <>
                       <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>
                         {slide.title}
@@ -270,8 +301,6 @@ const Dashboard = () => {
           </Slider>
         </Container>
       </Box>
-
-      <Footer />
     </Box>
   );
 };

@@ -33,12 +33,9 @@ function BasicLayout({ image, children }) {
   return (
     <PageLayout>
       <DefaultNavbar
-        action={{
-          type: "external",
-          route: "https://creative-tim.com/product/material-dashboard-react",
-          label: "Donasi Application",
-          color: "dark",
-        }}
+      // action={{
+      //   // route: "https://creative-tim.com/product/material-dashboard-react",
+      // }}
       />
       <MDBox
         position="absolute"

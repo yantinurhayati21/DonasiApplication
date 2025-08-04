@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 
 import {
   Grid,
@@ -31,7 +29,6 @@ import {
   InputLabel,
   InputAdornment,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import AddCircleOutline from "@mui/icons-material/AddCircleOutline"; // Mengimpor ikon AddCircleOutline
 
 import {
@@ -127,7 +124,7 @@ const ListPengajuan = () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/pengajuan`); // Corrected with backticks
       setPengajuanList(res.data.data || []);
-      console.log(res.data.data);
+      // console.log(res.data.data);
       // const notif = await axios.get(`${API_BASE_URL}/pengajuan/notifikasi`); // Corrected with backticks
       // setNotifikasi(
       //   notif.data.filter(
@@ -359,7 +356,6 @@ const ListPengajuan = () => {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
       <Container sx={{ pb: 6 }} maxWidth="xl">
         {/* Your top content */}
         <MDBox sx={{ pt: 2, pb: 2, textAlign: "center" }}>
@@ -1165,7 +1161,6 @@ const ListPengajuan = () => {
 
         {renderInfoSB}
       </Container>
-      <Footer />
     </DashboardLayout>
   );
 };

@@ -14,12 +14,16 @@ import {
   FormControl,
   FormHelperText,
   Card,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Slide,
 } from "@mui/material";
+import { InfoOutlined, CheckCircleOutline } from "@mui/icons-material";
 import { AddCircleOutline, RemoveCircleOutline } from "@mui/icons-material";
 import axios from "axios";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 
 const PengajuanForm = () => {
   const [tanggal, setTanggal] = useState("");
@@ -30,6 +34,10 @@ const PengajuanForm = () => {
   const [kategoriOptions, setKategoriOptions] = useState([]);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  // State untuk dialog konfirmasi dan sukses
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [openSuccess, setOpenSuccess] = useState(false);
 
   useEffect(() => {
     const fetchKategori = async () => {
@@ -42,6 +50,15 @@ const PengajuanForm = () => {
     };
     fetchKategori();
   }, []);
+
+  // Hitung otomatis nominalPengajuan setiap kali daftarPengeluaran berubah
+  useEffect(() => {
+    const total = daftarPengeluaran.reduce((sum, item) => {
+      const harga = Number(item.total_harga);
+      return sum + (isNaN(harga) ? 0 : harga);
+    }, 0);
+    setNominalPengajuan(total);
+  }, [daftarPengeluaran]);
 
   const handlePengeluaranChange = (index, field, value) => {
     const list = [...daftarPengeluaran];
@@ -86,11 +103,15 @@ const PengajuanForm = () => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  // Handler untuk tombol submit: buka dialog konfirmasi
+  const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
+    setOpenConfirm(true);
+  };
 
+  // Handler untuk konfirmasi submit
+  const handleConfirmSubmit = async () => {
     try {
       const payload = {
         id_user: 1,
@@ -102,22 +123,28 @@ const PengajuanForm = () => {
           total_harga: Number(item.total_harga),
         })),
       };
-
       const response = await axios.post("http://localhost:3000/api/pengajuan", payload);
-
       setSuccessMsg("Pengajuan berhasil dibuat dengan ID: " + response.data.data.id_pengajuan);
       setTanggal("");
       setNominalPengajuan("");
       setDaftarPengeluaran([{ nama_item: "", id_kategori: "", total_harga: "" }]);
+      setOpenConfirm(false);
+      setOpenSuccess(true);
     } catch (error) {
       setError("Terjadi kesalahan saat membuat pengajuan");
+      setOpenConfirm(false);
       console.error(error);
     }
   };
 
+  // Handler untuk tutup dialog sukses
+  const handleCloseSuccess = () => {
+    setOpenSuccess(false);
+    setSuccessMsg("");
+  };
+
   return (
     <DashboardLayout>
-      <DashboardNavbar />
       <Container maxWidth="md" sx={{ mt: 4 }}>
         <Card sx={{ p: 3, boxShadow: 2 }}>
           <Typography variant="h4" gutterBottom sx={{ color: "#3f51b5", fontWeight: "bold" }}>
@@ -126,6 +153,9 @@ const PengajuanForm = () => {
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
               <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+                  Tanggal Pengajuan
+                </Typography>
                 <TextField
                   label="Tanggal Pengajuan"
                   type="date"
@@ -138,14 +168,18 @@ const PengajuanForm = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+                  Nominal Pengajuan
+                </Typography>
                 <TextField
                   label="Nominal Pengajuan"
                   type="number"
                   fullWidth
                   value={nominalPengajuan}
-                  onChange={(e) => setNominalPengajuan(e.target.value)}
+                  InputProps={{ readOnly: true }}
                   required
                   sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
+                  helperText="Nominal otomatis dijumlahkan dari seluruh total harga item pengeluaran"
                 />
               </Grid>
             </Grid>
@@ -158,6 +192,9 @@ const PengajuanForm = () => {
               <Paper key={index} variant="outlined" sx={{ p: 3, mb: 2, boxShadow: 2 }}>
                 <Grid container spacing={2} alignItems="center">
                   <Grid item xs={12} sm={4}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+                      Nama Item
+                    </Typography>
                     <TextField
                       label="Nama Item"
                       value={item.nama_item}
@@ -168,6 +205,9 @@ const PengajuanForm = () => {
                     />
                   </Grid>
                   <Grid item xs={12} sm={4}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+                      Kategori
+                    </Typography>
                     <FormControl
                       fullWidth
                       required
@@ -178,6 +218,19 @@ const PengajuanForm = () => {
                         labelId={`kategori-label-${index}`}
                         value={item.id_kategori}
                         label="Kategori"
+                        sx={{
+                          padding: "10px 12px",
+                          fontSize: "1rem",
+                          backgroundColor: "#f4f4f9",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                          "& .MuiSelect-icon": {
+                            fontSize: "2rem",
+                          },
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px",
+                          },
+                        }}
                         onChange={(e) =>
                           handlePengeluaranChange(index, "id_kategori", e.target.value)
                         }
@@ -188,10 +241,12 @@ const PengajuanForm = () => {
                           </MenuItem>
                         ))}
                       </Select>
-                      {!item.id_kategori && <FormHelperText error>Pilih kategori</FormHelperText>}
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} sm={3}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>
+                      Total Harga
+                    </Typography>
                     <TextField
                       label="Total Harga"
                       type="number"
@@ -262,6 +317,59 @@ const PengajuanForm = () => {
             >
               Kirim Pengajuan
             </Button>
+            {/* Dialog Konfirmasi Sebelum Submit */}
+            <Dialog
+              open={openConfirm}
+              onClose={() => setOpenConfirm(false)}
+              TransitionComponent={Slide}
+              keepMounted
+            >
+              <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1, color: "#ff9800" }}>
+                <InfoOutlined sx={{ fontSize: 32, color: "#ff9800" }} />
+                Konfirmasi Pengajuan
+              </DialogTitle>
+              <DialogContent>
+                <Typography variant="body1" sx={{ mb: 2, color: "#333", fontWeight: "500" }}>
+                  Pengajuan yang sudah dibuat{" "}
+                  <span style={{ color: "#d32f2f", fontWeight: "bold" }}>
+                    tidak bisa diubah atau dihapus
+                  </span>
+                  .<br />
+                  Apakah Anda yakin ingin mengirim pengajuan ini?
+                </Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setOpenConfirm(false)} color="secondary" variant="outlined">
+                  Batal
+                </Button>
+                <Button onClick={handleConfirmSubmit} color="primary" variant="contained">
+                  Ya, Kirim
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {/* Dialog Sukses Setelah Submit */}
+            <Dialog
+              open={openSuccess}
+              onClose={handleCloseSuccess}
+              TransitionComponent={Slide}
+              keepMounted
+            >
+              <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1, color: "#4caf50" }}>
+                <CheckCircleOutline sx={{ fontSize: 32, color: "#4caf50" }} />
+                Pengajuan Berhasil
+              </DialogTitle>
+              <DialogContent>
+                <Typography variant="body1" sx={{ mb: 2, color: "#333", fontWeight: "500" }}>
+                  {successMsg || "Pengajuan berhasil dibuat."}
+                </Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseSuccess} color="primary" variant="contained">
+                  Tutup
+                </Button>
+              </DialogActions>
+            </Dialog>
           </form>
         </Card>
       </Container>

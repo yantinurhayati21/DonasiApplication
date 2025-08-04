@@ -9,8 +9,6 @@ import MDBox from "components/MDBox";
 
 // Donasi Application React components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
 
 // Dashboard components
@@ -57,7 +55,6 @@ function BendaharaDashboard() {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
       <MDBox py={3}>
         <Grid container spacing={3}>
           {/* Statistik Donatur Tetap */}
@@ -176,7 +173,6 @@ function BendaharaDashboard() {
           </Grid>
         </MDBox>
       </MDBox>
-      <Footer />
     </DashboardLayout>
   );
 }

@@ -257,7 +257,8 @@ const Pengajuan = {
         k.nama_kategori AS "Kategori",
         p.total_harga AS "Harga Barang",
         p.nama_item_act AS "Item Aktual",
-        p.total_harga_act AS "Harga Aktual"
+        p.total_harga_act AS "Harga Aktual",
+        p.created_at as "Tanggal pengeluaran"
       FROM pengeluaran p
       JOIN kategori_pengeluaran k ON p.id_kategori = k.id_kategori
       JOIN pengajuan pn ON p.id_pengajuan = pn.id_pengajuan

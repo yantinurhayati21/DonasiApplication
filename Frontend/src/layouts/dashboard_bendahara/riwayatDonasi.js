@@ -11,10 +11,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Dialog,
 } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 import axios from "axios";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -36,6 +35,10 @@ function DonasiBendahara() {
   const [filterDate, setFilterDate] = useState("");
   const [filterKodeTransaksi, setFilterKodeTransaksi] = useState("");
   const [filterNamaDonatur, setFilterNamaDonatur] = useState("");
+
+  // State untuk pop up detail doa
+  const [openDoaDialog, setOpenDoaDialog] = useState(false);
+  const [selectedDoa, setSelectedDoa] = useState({ list_doa: "", doa_spesific: "" });
 
   useEffect(() => {
     fetchDonasi();
@@ -104,11 +107,9 @@ function DonasiBendahara() {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
-
       <Card sx={{ p: 3, mt: 2, mb: 3, borderRadius: 2 }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
-          Data Donasi Bendahara
+          Riwayat Donasi
         </Typography>
 
         {/* Filters */}
@@ -220,8 +221,7 @@ function DonasiBendahara() {
                 <MDBox sx={{ flex: 1 }}>Jenis Donatur</MDBox>
                 <MDBox sx={{ flex: 1 }}>Tanggal Donasi</MDBox>
                 <MDBox sx={{ flex: 1 }}>Nominal</MDBox>
-                <MDBox sx={{ flex: 2 }}>List Doa</MDBox>
-                <MDBox sx={{ flex: 2 }}>Doa Spesifik</MDBox>
+                <MDBox sx={{ flex: 1, textAlign: "center" }}>Action</MDBox>
               </MDBox>
 
               {filteredData.length === 0 ? (
@@ -236,10 +236,9 @@ function DonasiBendahara() {
                     const role = localStorage.getItem("role");
                     const nama = localStorage.getItem("nama");
                     if (role === "Donatur") {
-                      console.log("Filtering for Donatur with ID:", item.nama);
                       return item.nama === nama && item;
                     }
-                    return item; // untuk selain Donatur, tampilkan semua
+                    return item;
                   })
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((item, index) => (
@@ -251,6 +250,7 @@ function DonasiBendahara() {
                         backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#fff",
                         borderRadius: 1,
                         mb: 1,
+                        alignItems: "center",
                       }}
                     >
                       <MDBox sx={{ flex: 1.5 }}>{item.order_id}</MDBox>
@@ -266,8 +266,33 @@ function DonasiBendahara() {
                           minimumFractionDigits: 0,
                         }).format(item.nominal)}
                       </MDBox>
-                      <MDBox sx={{ flex: 2 }}>{item.list_doa}</MDBox>
-                      <MDBox sx={{ flex: 2 }}>{item.doa_spesific}</MDBox>
+                      <MDBox sx={{ flex: 1, textAlign: "center" }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            background: "linear-gradient(90deg, #64b5f6 0%, #90caf9 100%)",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            borderRadius: "8px",
+                            boxShadow: "0 2px 8px rgba(100,181,246,0.15)",
+                            textTransform: "none",
+                            transition: "0.2s",
+                            "&:hover": {
+                              background: "linear-gradient(90deg, #42a5f5 0%, #64b5f6 100%)",
+                            },
+                          }}
+                          onClick={() => {
+                            setSelectedDoa({
+                              list_doa: item.list_doa,
+                              doa_spesific: item.doa_spesific,
+                            });
+                            setOpenDoaDialog(true);
+                          }}
+                        >
+                          Detail Doa
+                        </Button>
+                      </MDBox>
                     </MDBox>
                   ))
               )}
@@ -282,11 +307,84 @@ function DonasiBendahara() {
               onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
+
+            {/* Pop up dialog untuk detail doa */}
+            <Box>
+              <Dialog
+                open={openDoaDialog}
+                onClose={() => setOpenDoaDialog(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                  sx: {
+                    borderRadius: 4,
+                    background: "linear-gradient(135deg, #e3f2fd 0%, #fff 100%)",
+                    boxShadow: "0 8px 32px rgba(100,181,246,0.18)",
+                  },
+                }}
+              >
+                <Box sx={{ p: 4, textAlign: "center" }}>
+                  <Typography variant="h6" fontWeight="bold" color="primary" gutterBottom>
+                    Detail Doa
+                  </Typography>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      mb: 2,
+                      p: 2,
+                      background: "#f5faff",
+                      borderRadius: 2,
+                      boxShadow: "0 2px 8px rgba(100,181,246,0.08)",
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      color="secondary"
+                      gutterBottom
+                    >
+                      List Doa Pilihan:
+                    </Typography>
+                    <Typography variant="body1" color="textPrimary" sx={{ mb: 2 }}>
+                      {selectedDoa.list_doa || "-"}
+                    </Typography>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      color="secondary"
+                      gutterBottom
+                    >
+                      Doa Khusus:
+                    </Typography>
+                    <Typography variant="body1" color="textPrimary">
+                      {selectedDoa.doa_spesific || "-"}
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      mt: 2,
+                      background: "linear-gradient(90deg, #64b5f6 0%, #90caf9 100%)",
+                      color: "#fff",
+                      fontWeight: "bold",
+                      borderRadius: "8px",
+                      textTransform: "none",
+                      boxShadow: "0 2px 8px rgba(100,181,246,0.15)",
+                      transition: "0.2s",
+                      "&:hover": {
+                        background: "linear-gradient(90deg, #42a5f5 0%, #64b5f6 100%)",
+                      },
+                    }}
+                    onClick={() => setOpenDoaDialog(false)}
+                  >
+                    Tutup
+                  </Button>
+                </Box>
+              </Dialog>
+            </Box>
           </>
         )}
       </Card>
-
-      <Footer />
     </DashboardLayout>
   );
 }

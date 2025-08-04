@@ -12,12 +12,14 @@ import {
   InputLabel,
   Grid,
   Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { ToggleOn, ToggleOff } from "@mui/icons-material"; // Ikon untuk status aktif/tidak aktif
 
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 import axios from "axios";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -32,6 +34,11 @@ function Donatur() {
   const [page, setPage] = useState(0); // Pagination
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filteredData, setFilteredData] = useState([]);
+
+  // State untuk pop up konfirmasi
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [pendingStatusId, setPendingStatusId] = useState(null);
+  const [pendingStatusValue, setPendingStatusValue] = useState(null);
 
   useEffect(() => {
     fetchDonatur();
@@ -52,8 +59,6 @@ function Donatur() {
   };
 
   const handleSearch = () => {
-    setFilteredData([]);
-
     const filteredDataWithSearch = donaturList.filter((donatur) => {
       const matchesName = donatur.nama.toLowerCase().includes(filterText.toLowerCase());
       const matchesJenisDonatur =
@@ -62,8 +67,6 @@ function Donatur() {
         selectedStatusDonatur === "" || donatur.status_aktif === JSON.parse(selectedStatusDonatur);
       return matchesName && matchesJenisDonatur && matchesStatusDonatur;
     });
-
-    // console.log(filteredDataWithSearch);
     setFilteredData(filteredDataWithSearch);
   };
 
@@ -71,25 +74,50 @@ function Donatur() {
     setFilterText("");
     setSelectedJenisDonatur("");
     setSelectedStatusDonatur("");
-    setFilteredData([]);
     setFilteredData(donaturList); // Reset to original data
   };
 
-  const handleStatusChange = async (id, currentStatus) => {
-    const newStatus = currentStatus === true ? false : true; // Toggle status between TRUE and FALSE
+  // Handler untuk membuka dialog konfirmasi
+  const handleStatusChange = (id, currentStatus) => {
+    setPendingStatusId(id);
+    setPendingStatusValue(currentStatus === true ? false : true);
+    setOpenConfirm(true);
+  };
+
+  // Handler untuk konfirmasi update status
+  const handleConfirmStatusChange = async () => {
+    if (pendingStatusId == null) return;
     try {
-      const response = await axios.patch(`http://localhost:3000/api/donatur/status/${id}`, {
-        status_aktif: newStatus, // Update status
-      });
+      const response = await axios.patch(
+        `http://localhost:3000/api/donatur/status/${pendingStatusId}`,
+        {
+          status_aktif: pendingStatusValue,
+        }
+      );
       const updatedDonaturList = donaturList.map((donatur) =>
-        donatur.id_donatur === id ? { ...donatur, status_aktif: newStatus } : donatur
+        donatur.id_donatur === pendingStatusId
+          ? { ...donatur, status_aktif: pendingStatusValue }
+          : donatur
       );
       setDonaturList(updatedDonaturList);
-      setFilteredData(updatedDonaturList); // Update filtered data as well
+      setFilteredData(updatedDonaturList);
+      setOpenConfirm(false);
+      setPendingStatusId(null);
+      setPendingStatusValue(null);
     } catch (error) {
       console.error("Error updating donatur status:", error);
       alert("Terjadi kesalahan saat mengubah status donatur.");
+      setOpenConfirm(false);
+      setPendingStatusId(null);
+      setPendingStatusValue(null);
     }
+  };
+
+  // Handler untuk batal
+  const handleCancelStatusChange = () => {
+    setOpenConfirm(false);
+    setPendingStatusId(null);
+    setPendingStatusValue(null);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -103,7 +131,6 @@ function Donatur() {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
       <MDBox
         pt={3}
         px={3}
@@ -308,7 +335,7 @@ function Donatur() {
                 return (
                   <>
                     <MDBox
-                      key={donatur.id_user}
+                      key={donatur.id_donatur}
                       component="div"
                       sx={{
                         display: "flex",
@@ -366,8 +393,62 @@ function Donatur() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
+        {/* Dialog Konfirmasi Status Aktif */}
+        <Dialog open={openConfirm} onClose={handleCancelStatusChange}>
+          <DialogTitle>Konfirmasi Ubah Status Donatur</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Apakah Anda yakin ingin {pendingStatusValue ? "mengaktifkan" : "menonaktifkan"}{" "}
+              donatur ini?
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleCancelStatusChange}
+              color="secondary"
+              variant="outlined"
+              sx={{
+                padding: "12px 32px",
+                minWidth: 100,
+                fontSize: "0.95rem",
+                fontWeight: "600",
+                borderRadius: "8px",
+                color: "#303f9f",
+                borderColor: "#303f9f",
+                textTransform: "none",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                "&:hover": {
+                  backgroundColor: "#303f9f",
+                  color: "#fff",
+                },
+              }}
+            >
+              Tidak
+            </Button>
+            <Button
+              onClick={handleConfirmStatusChange}
+              color="secondary"
+              variant="outlined"
+              sx={{
+                padding: "12px 32px",
+                minWidth: 100,
+                borderRadius: "8px", // Lebih bulat
+                fontWeight: "600",
+                borderColor: "#ff4081",
+                color: "#ff4081",
+                textTransform: "none",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                "&:hover": {
+                  backgroundColor: "#ff4081", // Warna latar belakang saat hover
+                  color: "#fff",
+                },
+              }}
+            >
+              Ya
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Card>
-      <Footer />
     </DashboardLayout>
   );
 }

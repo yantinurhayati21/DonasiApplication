@@ -143,11 +143,17 @@ function DashboardNavbar({ absolute, light, isMini }) {
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
             <p style={{ textTransform: "capitalize" }}>
               Hello,{" "}
-              {localStorage.getItem("role") === "Donatur"
-                ? localStorage.getItem("nama")
-                : localStorage.getItem("role")}
+              {(() => {
+                const role = localStorage.getItem("role");
+                const nama = localStorage.getItem("nama");
+
+                if (!role) return "User";
+                if (role === "Donatur") return nama || "Donatur";
+                return role;
+              })()}
               !
             </p>
+
             <MDBox color={light ? "white" : "inherit"}>
               <Link to="/authentication/sign-in/basic">
                 <IconButton
@@ -158,7 +164,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
                   <Icon sx={{ ...iconsStyle, fontSize: "2rem" }}>account_circle</Icon>
                 </IconButton>
               </Link>
-              <IconButton
+              {/* <IconButton
                 sx={{
                   ...navbarIconButton,
                   fontSize: "2rem", // Memperbesar ukuran ikon tombol
@@ -173,7 +179,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 onClick={handleOpenMenu}
               >
                 <Icon sx={{ ...iconsStyle, fontSize: "2rem" }}>notifications</Icon>
-              </IconButton>
+              </IconButton> */}
               {renderMenu()}
             </MDBox>
           </MDBox>

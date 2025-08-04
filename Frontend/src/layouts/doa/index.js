@@ -19,8 +19,6 @@ import {
 } from "@mui/material";
 import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
-import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import Footer from "examples/Footer";
 import axios from "axios";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -186,7 +184,6 @@ function DaftarDoa() {
 
   return (
     <DashboardLayout>
-      <DashboardNavbar />
       <MDBox
         pt={3}
         px={3}
@@ -602,7 +599,6 @@ function DaftarDoa() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Footer />
     </DashboardLayout>
   );
 }

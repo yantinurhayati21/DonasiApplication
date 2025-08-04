@@ -11,6 +11,7 @@ import DonasiBendahara from "layouts/dashboard_bendahara/riwayatDonasi";
 import LaporanDonasi from "layouts/laporanKeuangan/laporan";
 import DonasiForm from "layouts/billing/components/Donasi/DonasiForm";
 import Donatur from "layouts/donatur";
+import DonasiPribadi from "layouts/donatur/donasiPribadi";
 import PengajuanPengeluaran from "layouts/pengajuanPengeluaran/PengajuanForm";
 
 // import Pengeluaran from "layouts/pengeluaran";
@@ -77,6 +78,14 @@ const routes = [
   },
   {
     type: "collapse",
+    name: "Riwayat Donasi Pribadi",
+    key: "riwayat-donasi-pribadi",
+    icon: <Icon fontSize="small">attach_money</Icon>,
+    route: "/riwayat-donasi-pribadi",
+    component: <DonasiPribadi />,
+  },
+  {
+    type: "collapse",
     name: "Pengajuan Pengeluaran",
     key: "list_pengajuan_pimpinan",
     icon: <Icon fontSize="small">account_balance_wallet</Icon>,
@@ -102,26 +111,18 @@ const routes = [
   {
     type: "collapse",
     name: "Riwayat Donasi",
-    key: "donasi-bendahara",
+    key: "riwayat-donasi",
     icon: <Icon fontSize="small">attach_money</Icon>,
-    route: "/donasi-bendahara",
+    route: "/riwayat-donasi",
     component: <DonasiBendahara />,
   },
   {
     type: "collapse",
-    name: "Laporan Donasi",
-    key: "laporan-donasi",
+    name: "Laporan Keuangan",
+    key: "laporan-keuangan",
     icon: <Icon fontSize="small">attach_money</Icon>,
-    route: "/laporan-donasi",
+    route: "/laporan-keuangan",
     component: <LaporanDonasi />,
-  },
-  {
-    type: "collapse",
-    name: "Notifications",
-    key: "notifications",
-    icon: <Icon fontSize="small">notifications</Icon>,
-    route: "/notifications",
-    component: <Notifications />,
   },
   {
     type: "collapse",
