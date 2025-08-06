@@ -26,6 +26,8 @@ import {
   FormControl,
   InputLabel,
   InputAdornment,
+  DialogContent as MuiDialogContent,
+  DialogContentText,
 } from "@mui/material";
 import {
   Notifications as NotificationsIcon,
@@ -62,6 +64,10 @@ const ListPengajuanBendahara = () => {
   const [inputSelectedApproval, setInputSelectedApproval] = useState("");
   const API_BASE_URL = "http://localhost:3000/api";
   const role = localStorage.getItem("role");
+  // const [statusBukti, setStatusBukti] = useState("");
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [statusBukti, setStatusBukti] = useState("menunggu"); // Menunggu sebagai default
 
   // Handle Pagination
   const handleChangePage = (event, newPage) => {
@@ -243,9 +249,7 @@ const ListPengajuanBendahara = () => {
     />
   );
 
-  const handleUpdateStatusBukti = async (e, id_pengajuan) => {
-    e.preventDefault();
-    const statusBukti = e.target.value;
+  const handleUpdateStatusBukti = async (statusBukti, id_pengajuan) => {
     console.log("Updating status bukti:", statusBukti);
 
     try {
@@ -253,6 +257,7 @@ const ListPengajuanBendahara = () => {
         status_bukti: statusBukti,
       });
       console.log("Response from update status bukti:", res);
+      alert("Status bukti pengeluaran berhasil diperbarui");
     } catch (error) {
       console.error("Error updating status bukti:", error);
       alert("Gagal memperbarui status bukti pengeluaran");
@@ -385,7 +390,7 @@ const ListPengajuanBendahara = () => {
         <Grid container spacing={2} sx={{ width: "100%", maxWidth: "100%" }}>
           <Grid item xs={12}>
             <Card sx={{ p: 3, boxShadow: 3, borderRadius: 2, width: "100%" }}>
-              <MDTypography variant="h6" mb={2} sx={{ fontWeight: "bold", fontSize: "1.25rem" }}>
+              <MDTypography variant="h6" mb={2} sx={{ color: "#3f51b5", fontWeight: "bold" }}>
                 Daftar Pengajuan dan Pengeluaran
               </MDTypography>
 
@@ -411,14 +416,24 @@ const ListPengajuanBendahara = () => {
                         borderRadius: 1,
                       }}
                     >
-                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>No</MDBox>
-                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
+                      <MDBox
+                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
+                      >
+                        No
+                      </MDBox>
+                      <MDBox
+                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
+                      >
                         Tanggal Pengajuan
                       </MDBox>
-                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
+                      <MDBox
+                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
+                      >
                         Nominal Pengajuan
                       </MDBox>
-                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
+                      <MDBox
+                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
+                      >
                         Status Pengajuan
                       </MDBox>
                       {role === "Bendahara" && (
@@ -427,12 +442,15 @@ const ListPengajuanBendahara = () => {
                             flex: 1,
                             padding: "8px 16px",
                             fontWeight: "bold",
+                            color: "#3f51b5",
                           }}
                         >
                           Status Approval Bendahara
                         </MDBox>
                       )}
-                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
+                      <MDBox
+                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
+                      >
                         Status Approval Pimpinan
                       </MDBox>
                       <MDBox
@@ -441,6 +459,7 @@ const ListPengajuanBendahara = () => {
                           padding: "8px 16px",
                           textAlign: "center",
                           fontWeight: "bold",
+                          color: "#3f51b5",
                         }}
                       >
                         Detail Pengeluaran
@@ -787,34 +806,62 @@ const ListPengajuanBendahara = () => {
                           {selectedPengajuan?.deskripsi || "Tidak ada keterangan tersedia."}
                         </MDTypography>
                         <MDTypography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ fontSize: "16px", fontWeight: "bold" }}
+                          variant="h6"
+                          sx={{
+                            fontWeight: "bold",
+                            marginTop: 3,
+                            color: "#3f51b5",
+                            marginBottom: 3,
+                          }}
                         >
-                          Status Bukti Pengeluaran:
+                          Status Bukti Pengeluaran
                         </MDTypography>
                         {selectedPengajuan?.status_bukti_pengeluaran === "menunggu" ? (
-                          <MDBox sx={{ marginTop: 3 }}>
-                            <form style={{ display: "flex", flexDirection: "column" }}>
-                              <select
-                                name="status_bukti"
+                          <MDBox sx={{ marginTop: 2, maxWidth: 350 }}>
+                            <FormControl fullWidth sx={{ minWidth: 200 }}>
+                              <InputLabel id="status-bukti-label">Pilih Status</InputLabel>
+                              <Select
+                                labelId="status-bukti-label"
                                 id="status_bukti"
-                                style={{
-                                  width: "100%",
-                                  padding: "8px",
-                                  borderRadius: "4px",
-                                  border: "1px solid #ccc",
-                                  marginTop: "8px",
+                                value={statusBukti || "menunggu"} // Pastikan menunggu adalah default value jika statusBukti kosong
+                                label="Pilih Status"
+                                onChange={(e) => {
+                                  setSelectedStatus(e.target.value);
+                                  setConfirmDialogOpen(true); // Buka dialog konfirmasi saat status dipilih
                                 }}
-                                onChange={(e) =>
-                                  handleUpdateStatusBukti(e, selectedPengajuan?.id_pengajuan)
-                                }
+                                sx={{
+                                  backgroundColor: "#fff",
+                                  borderRadius: 2,
+                                  fontWeight: "bold",
+                                  fontSize: "1.1rem",
+                                  boxShadow: 1,
+                                }}
+                                displayEmpty
                               >
-                                <option value="">Pilih Status</option>
-                                <option value="diterima">Diterima</option>
-                                <option value="ditolak">Ditolak</option>
-                              </select>
-                            </form>
+                                <MenuItem value="menunggu" disabled>
+                                  <span style={{ color: "#888" }}>Menunggu</span>
+                                </MenuItem>
+                                <MenuItem value="diterima">
+                                  <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <CheckCircleOutline sx={{ color: "#4caf50", fontSize: 22 }} />
+                                    <span style={{ color: "#4caf50", fontWeight: 600 }}>
+                                      Diterima
+                                    </span>
+                                  </span>
+                                </MenuItem>
+                                <MenuItem value="ditolak">
+                                  <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <CancelOutlined sx={{ color: "#d32f2f", fontSize: 22 }} />
+                                    <span style={{ color: "#d32f2f", fontWeight: 600 }}>
+                                      Ditolak
+                                    </span>
+                                  </span>
+                                </MenuItem>
+                              </Select>
+                              <Typography variant="caption" sx={{ mt: 1, color: "#666" }}>
+                                Pilih status bukti pengeluaran sesuai hasil verifikasi Anda.
+                              </Typography>
+                            </FormControl>
                           </MDBox>
                         ) : (
                           selectedPengajuan?.status_bukti_pengeluaran
@@ -922,6 +969,32 @@ const ListPengajuanBendahara = () => {
           <DialogActions>
             <Button onClick={handleCloseSuccessApproval} color="primary" variant="contained">
               Tutup
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+          <DialogTitle>Konfirmasi Perubahan Status</DialogTitle>
+          <MuiDialogContent>
+            <DialogContentText>
+              Apakah Anda yakin ingin mengubah status bukti pengeluaran menjadi{" "}
+              <strong>{selectedStatus === "diterima" ? "Diterima" : "Ditolak"}</strong>?
+            </DialogContentText>
+          </MuiDialogContent>
+          <DialogActions>
+            <Button onClick={() => setConfirmDialogOpen(false)} color="inherit">
+              Batal
+            </Button>
+            <Button
+              onClick={async () => {
+                setStatusBukti(selectedStatus); // Update status setelah konfirmasi
+                await handleUpdateStatusBukti(selectedStatus, selectedPengajuan?.id_pengajuan);
+                setConfirmDialogOpen(false);
+              }}
+              color="primary"
+              variant="contained"
+            >
+              Ya, Ubah
             </Button>
           </DialogActions>
         </Dialog>

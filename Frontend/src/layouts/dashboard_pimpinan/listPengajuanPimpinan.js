@@ -789,7 +789,26 @@ const ListPengajuanPimpinan = () => {
                         >
                           {selectedPengajuan?.deskripsi || "Tidak ada keterangan tersedia."}
                         </MDTypography>
+                        <MDTypography
+                          variant="h6"
+                          sx={{
+                            fontWeight: "bold",
+                            marginTop: 3,
+                            color: "#3f51b5",
+                            marginBottom: 3,
+                          }}
+                        >
+                          Status Bukti Pengeluaran
+                        </MDTypography>
 
+                        <MDTypography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ fontSize: "16px" }}
+                        >
+                          {selectedPengajuan?.status_bukti_pengeluaran ||
+                            "Tidak ada keterangan tersedia."}
+                        </MDTypography>
                         {/* Button untuk membuka bukti */}
                         <Box sx={{ marginTop: 4, textAlign: "center" }}>
                           <Button

@@ -480,7 +480,7 @@ const ListPengajuan = () => {
         <Grid container spacing={2} sx={{ width: "100%", maxWidth: "100%" }}>
           <Grid item xs={12}>
             <Card sx={{ p: 3, boxShadow: 3, borderRadius: 2, width: "100%" }}>
-              <MDTypography variant="h6" mb={2} sx={{ color: "#3f51b5", fontWeight: "bold" }}>
+              <MDTypography variant="h6" mb={2} sx={{ fontSize: "1.25rem", fontWeight: "bold" }}>
                 Daftar Pengajuan dan Pengeluaran
               </MDTypography>
 
@@ -506,34 +506,20 @@ const ListPengajuan = () => {
                         borderRadius: 1,
                       }}
                     >
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
-                        No
-                      </MDBox>
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>No</MDBox>
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
                         Tanggal Pengajuan
                       </MDBox>
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
                         Nominal Pengajuan
                       </MDBox>
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
                         Status Pengajuan
                       </MDBox>
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
                         persetujuan Bendahara
                       </MDBox>
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
                         Persetujuan Pimpinan
                       </MDBox>
                       <MDBox
@@ -542,7 +528,6 @@ const ListPengajuan = () => {
                           padding: "8px 16px",
                           textAlign: "center",
                           fontWeight: "bold",
-                          color: "#3f51b5",
                         }}
                       >
                         Detail Pengajuan
@@ -870,6 +855,22 @@ const ListPengajuan = () => {
 
                     <MDTypography variant="body2" color="text.secondary" sx={{ fontSize: "16px" }}>
                       {selectedPengajuan?.deskripsi || "Tidak ada keterangan tersedia."}
+                    </MDTypography>
+                    <MDTypography
+                      variant="h6"
+                      sx={{
+                        fontWeight: "bold",
+                        marginTop: 3,
+                        color: "#3f51b5",
+                        marginBottom: 3,
+                      }}
+                    >
+                      Status Bukti Pengeluaran
+                    </MDTypography>
+
+                    <MDTypography variant="body2" color="text.secondary" sx={{ fontSize: "16px" }}>
+                      {selectedPengajuan?.status_bukti_pengeluaran ||
+                        "Tidak ada keterangan tersedia."}
                     </MDTypography>
 
                     {/* Open File Button */}
