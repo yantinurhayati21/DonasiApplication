@@ -1,5 +1,6 @@
 import Donatur from "../models/donaturModel.js";
 import User from "../models/usersModel.js";
+import sendEmail from "../services/emailService.js";
 
 export const getAllDonatur = async (req, res) => {
   try {
@@ -112,4 +113,31 @@ export const updateDonaturStatus = async (req, res) => {
   }
 };
 
+// Fungsi untuk mengirim email pengingat ke semua donatur tetap
+export const sendReminderToAllDonaturTetap = async (req, res) => {
+  try {
+    // Ambil semua donatur tetap yang aktif
+    const donaturList = await Donatur.getAllTetapAktif(); // Memanggil getAll() untuk mengambil donatur tetap yang aktif
+    // return;
+    // Jika tidak ada donatur
+    if (donaturList.length === 0) {
+      return res.status(404).json({ message: 'Tidak ada donatur tetap yang aktif' });
+    }
 
+    // Kirim email pengingat untuk setiap donatur yang aktif dan jenis donatur 'Tetap'
+    for (let donatur of donaturList) {
+      await sendEmail(
+        donatur.email, // Email penerima
+        'Pengingat Donasi Bulanan',
+        `Halo ${donatur.nama}, ini adalah pengingat untuk donasi bulan ini. Terima kasih atas dukungan Anda!`
+      );
+
+      // Perbarui kolom last_reminder_sent setelah email dikirim
+      await Donatur.updateReminderSentDate(donatur.id_donatur);
+    }
+
+    res.status(200).json({ message: 'Pengingat berhasil dikirim ke semua donatur tetap yang aktif.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Terjadi kesalahan saat mengirim pengingat', error: error.message });
+  }
+};

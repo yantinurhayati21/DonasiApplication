@@ -119,6 +119,17 @@ const ListPengajuanPimpinan = () => {
       setPengajuanList(res.data.data || []);
       const notif = await axios.get(`${API_BASE_URL}/pengajuan/notifikasi`);
       console.log(notif);
+      // fetch notifikasi
+      localStorage.setItem(
+        "notifikasi",
+        JSON.stringify(
+          notif.data.filter(
+            (notifikasi) =>
+              notifikasi.status === "unread" &&
+              notifikasi.id_user === parseInt(localStorage.getItem("id_user"))
+          ) || []
+        )
+      );
       setNotifikasi(
         notif.data.filter(
           (notifikasi) =>
@@ -141,7 +152,8 @@ const ListPengajuanPimpinan = () => {
     socket.on("pengajuan-diterima-pimpinan", (data) => {
       // console.log("Pengajuan baru:", data);
       setMessage(data.pesan);
-      // setNotifikasi((prev) => [...prev, data]);
+      setNotifikasi((prev) => [...prev, data]);
+      localStorage.setItem("notifikasi", JSON.stringify([...notifikasi, data]));
       setPengajuanList(data.data || []);
       setInfoSB(true);
     });

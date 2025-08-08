@@ -129,6 +129,16 @@ function Donatur() {
     setPage(0);
   };
 
+  const handleSendReminderToAll = async () => {
+    try {
+      const response = await axios.post("http://localhost:3000/api/donatur/sendReminderAll");
+      alert(response.data.message); // Menampilkan pesan sukses
+    } catch (error) {
+      console.error("Error sending reminder:", error);
+      alert("Terjadi kesalahan saat mengirim pengingat.");
+    }
+  };
+
   return (
     <DashboardLayout>
       <MDBox
@@ -243,7 +253,7 @@ function Donatur() {
             </Box>
           </Grid>
         </Grid>
-
+        {/* ignore prettier */}
         {/* Row 2: Tombol di kiri (sejajar bawah Nama Donatur) */}
         <Grid container spacing={2} sx={{ pl: { xs: 0, sm: 2 }, mt: 1, mb: 3 }}>
           <Grid item>
@@ -287,6 +297,28 @@ function Donatur() {
               onClick={handleClearFilters}
             >
               Clear
+            </Button>
+          </Grid>
+          {/* Tombol Kirim Pengingat untuk Semua Donatur Tetap */}
+          <Grid item>
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "#4caf50", // Warna tombol hijau
+                color: "#fff",
+                padding: "10px 32px",
+                minWidth: 140,
+                fontSize: "0.95rem",
+                fontWeight: "bold",
+                borderRadius: "8px",
+                textTransform: "none",
+                "&:hover": {
+                  backgroundColor: "#388e3c", // Warna tombol saat hover
+                },
+              }}
+              onClick={handleSendReminderToAll}
+            >
+              Kirim Pengingat
             </Button>
           </Grid>
         </Grid>

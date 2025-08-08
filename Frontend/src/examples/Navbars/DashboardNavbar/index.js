@@ -27,6 +27,7 @@ import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import Icon from "@mui/material/Icon";
+import Badge from "@mui/material/Badge";
 
 // Donasi Application React components
 import MDBox from "components/MDBox";
@@ -164,11 +165,12 @@ function DashboardNavbar({ absolute, light, isMini }) {
                   <Icon sx={{ ...iconsStyle, fontSize: "2rem" }}>account_circle</Icon>
                 </IconButton>
               </Link>
-              {/* <IconButton
+              <IconButton
                 sx={{
                   ...navbarIconButton,
-                  fontSize: "2rem", // Memperbesar ukuran ikon tombol
-                  padding: "12px", // Menambah padding untuk memperbesar tombol
+                  fontSize: "2rem",
+                  padding: "12px",
+                  position: "relative",
                 }}
                 size="small"
                 disableRipple
@@ -178,8 +180,29 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 variant="contained"
                 onClick={handleOpenMenu}
               >
-                <Icon sx={{ ...iconsStyle, fontSize: "2rem" }}>notifications</Icon>
-              </IconButton> */}
+                <Badge
+                  badgeContent={
+                    localStorage.getItem("notifikasi")
+                      ? JSON.parse(localStorage.getItem("notifikasi")).length
+                      : 0
+                  }
+                  color="error"
+                  overlap="circular"
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      fontWeight: "bold",
+                      fontSize: "0.85rem",
+                      minWidth: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      top: 4,
+                      right: 4,
+                    },
+                  }}
+                >
+                  <Icon sx={{ ...iconsStyle, fontSize: "2rem" }}>notifications</Icon>
+                </Badge>
+              </IconButton>
               {renderMenu()}
             </MDBox>
           </MDBox>

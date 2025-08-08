@@ -4,7 +4,8 @@ import {
   getByUserId,
   createDonatur,
   updateDonatur,
-  updateDonaturStatus
+  updateDonaturStatus,
+  sendReminderToAllDonaturTetap
 } from "../controllers/donaturController.js"; 
 
 const router = express.Router();
@@ -23,6 +24,8 @@ router.put("/:id", updateDonatur);
 
 // Route to update the status of a Donatur
 router.patch("/status/:id", updateDonaturStatus);
+
+router.post("/sendReminderAll", sendReminderToAllDonaturTetap);
 
 
 export default router;

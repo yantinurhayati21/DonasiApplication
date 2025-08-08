@@ -15,6 +15,13 @@ const Donatur = {
     return result.rows;
   },
 
+  getAllTetapAktif: async () => {
+    const result = await pool.query(
+      "SELECT * FROM donatur WHERE jenis_donatur = 'Tetap' AND status_aktif = TRUE ORDER BY created_at DESC"
+    );
+    return result.rows; // Mengembalikan hasil dalam bentuk array of donatur
+  },
+
   getByUserId: async (id_user) => {
     const result = await pool.query(
       "SELECT * FROM donatur WHERE id_user = $1",
@@ -80,6 +87,18 @@ const Donatur = {
     } finally {
       client.release(); // Pastikan koneksi dilepas
     }
+  },
+
+  // Menambahkan fungsi untuk memperbarui kolom 'last_reminder_sent'
+  updateReminderSentDate: async (id_donatur) => {
+    const result = await pool.query(
+      `UPDATE donatur 
+     SET last_reminder_sent = CURRENT_DATE 
+     WHERE id_donatur = $1 
+     RETURNING *`,
+      [id_donatur]
+    );
+    return result.rows[0];
   },
 };
 
