@@ -419,7 +419,7 @@ export default function DonationForm() {
               }}
               onClick={() => (window.location.href = "/dashboard")}
             >
-              Kembali ke Dashboard yaaaa
+              Kembali ke Dashboard
             </Button>
           )}
         </Stack>
