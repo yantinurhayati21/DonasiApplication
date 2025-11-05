@@ -31,11 +31,14 @@ import {
   setWhiteSidenav,
 } from "context";
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return null;
+  }
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
-
   let textColor = "white";
 
   if (transparentSidenav || (whiteSidenav && !darkMode)) {

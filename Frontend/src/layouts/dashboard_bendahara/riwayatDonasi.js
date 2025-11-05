@@ -11,11 +11,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  IconButton,
   Dialog,
 } from "@mui/material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import axios from "axios";
 import MDBox from "components/MDBox";
+import CloseIcon from "@mui/icons-material/Close";
 import MDTypography from "components/MDTypography";
 
 function DonasiBendahara() {
@@ -214,14 +216,15 @@ function DonasiBendahara() {
                   backgroundColor: "#f1f1f1",
                   padding: "12px",
                   borderRadius: 1,
+                  fontWeight: "bold",
                 }}
               >
                 <MDBox sx={{ flex: 1.5 }}>Kode Transaksi</MDBox>
                 <MDBox sx={{ flex: 1 }}>Nama Donatur</MDBox>
                 <MDBox sx={{ flex: 1 }}>Jenis Donatur</MDBox>
                 <MDBox sx={{ flex: 1 }}>Tanggal Donasi</MDBox>
-                <MDBox sx={{ flex: 1 }}>Nominal</MDBox>
-                <MDBox sx={{ flex: 1, textAlign: "center" }}>Action</MDBox>
+                <MDBox sx={{ flex: 1 }}>Nominal Donasi</MDBox>
+                <MDBox sx={{ flex: 1, textAlign: "center" }}>Detail Doa</MDBox>
               </MDBox>
 
               {filteredData.length === 0 ? (
@@ -320,11 +323,12 @@ function DonasiBendahara() {
                     borderRadius: 4,
                     background: "linear-gradient(135deg, #e3f2fd 0%, #fff 100%)",
                     boxShadow: "0 8px 32px rgba(100,181,246,0.18)",
+                    position: "relative", // Posisi relative untuk penempatan ikon
                   },
                 }}
               >
-                <Box sx={{ p: 4, textAlign: "center" }}>
-                  <Typography variant="h6" fontWeight="bold" color="primary" gutterBottom>
+                <Box sx={{ p: 4, textAlign: "left" }}>
+                  <Typography variant="h6" fontWeight="bold" fontSize={24} gutterBottom>
                     Detail Doa
                   </Typography>
                   <Box
@@ -345,9 +349,25 @@ function DonasiBendahara() {
                     >
                       List Doa Pilihan:
                     </Typography>
-                    <Typography variant="body1" color="textPrimary" sx={{ mb: 2 }}>
-                      {selectedDoa.list_doa || "-"}
-                    </Typography>
+                    {/* Menampilkan list doa */}
+                    <Box sx={{ mb: 2 }}>
+                      {selectedDoa.list_doa ? (
+                        <ul style={{ paddingLeft: "20px", margin: 0 }}>
+                          {selectedDoa.list_doa.split(",").map((doa, index) => (
+                            <li key={index} style={{ marginBottom: "8px" }}>
+                              <Typography variant="body1" color="textPrimary">
+                                {doa.trim()}
+                              </Typography>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <Typography variant="body1" color="textPrimary">
+                          -
+                        </Typography>
+                      )}
+                    </Box>
+
                     <Typography
                       variant="subtitle1"
                       fontWeight="bold"
@@ -360,25 +380,24 @@ function DonasiBendahara() {
                       {selectedDoa.doa_spesific || "-"}
                     </Typography>
                   </Box>
-                  <Button
-                    variant="contained"
+
+                  {/* Ikon Close di kanan atas */}
+                  <IconButton
                     sx={{
-                      mt: 2,
-                      background: "linear-gradient(90deg, #64b5f6 0%, #90caf9 100%)",
-                      color: "#fff",
-                      fontWeight: "bold",
-                      borderRadius: "8px",
-                      textTransform: "none",
-                      boxShadow: "0 2px 8px rgba(100,181,246,0.15)",
-                      transition: "0.2s",
+                      position: "absolute", // Posisi absolute untuk menempatkan ikon di sudut kanan atas
+                      top: 16, // Jarak dari atas
+                      right: 16, // Jarak dari kanan
+                      color: "#64b5f6",
+                      fontSize: "24px",
                       "&:hover": {
-                        background: "linear-gradient(90deg, #42a5f5 0%, #64b5f6 100%)",
+                        background: "transparent",
+                        color: "#42a5f5",
                       },
                     }}
                     onClick={() => setOpenDoaDialog(false)}
                   >
-                    Tutup
-                  </Button>
+                    <CloseIcon />
+                  </IconButton>
                 </Box>
               </Dialog>
             </Box>

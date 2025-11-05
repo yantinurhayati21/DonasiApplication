@@ -377,8 +377,8 @@ export default function DonationForm() {
           onChange={(e) => setDoaSpesific(e.target.value)}
         />
 
-        <Stack mt={3} spacing={2}>
-          <Button variant="contained" type="submit" size="large" fullWidth>
+        {/* <Stack mt={3} spacing={2}>
+          <Button variant="contained" type="submit" size="large" fullWidth sx={{ color: "#fff" }}>
             Kirim Donasi
           </Button>
 
@@ -387,7 +387,48 @@ export default function DonationForm() {
               {submitStatus.message}
             </Alert>
           )}
+        </Stack> */}
+        <Stack
+          mt={3}
+          spacing={2}
+          direction={!isDonaturTetap ? "row" : "column"} // kalau tidak ada token → horizontal
+        >
+          <Button
+            variant="contained"
+            type="submit"
+            size="large"
+            fullWidth={!!isDonaturTetap} // kalau ada token → full width
+            sx={{ color: "#fff", flex: !isDonaturTetap ? 1 : undefined }}
+          >
+            Kirim Donasi
+          </Button>
+
+          {/* Tampilkan tombol Kembali kalau tidak ada token */}
+          {!isDonaturTetap && (
+            <Button
+              variant="outlined"
+              size="large"
+              sx={{
+                borderColor: "#2397f5ff",
+                color: "#2397f5ff",
+                flex: 1,
+                "&:hover": {
+                  backgroundColor: "rgba(35, 151, 245, 0.1)", // biru muda transparan saat hover
+                  borderColor: "#2397f5ff",
+                },
+              }}
+              onClick={() => (window.location.href = "/dashboard")}
+            >
+              Kembali ke Dashboard
+            </Button>
+          )}
         </Stack>
+        {/* Status submit */}
+        {submitStatus && (
+          <Alert severity={submitStatus.success ? "success" : "error"} sx={{ mt: 2 }}>
+            {submitStatus.message}
+          </Alert>
+        )}
       </Box>
     </DashboardLayout>
   );

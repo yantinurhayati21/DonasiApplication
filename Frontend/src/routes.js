@@ -13,11 +13,8 @@ import DonasiForm from "layouts/billing/components/Donasi/DonasiForm";
 import Donatur from "layouts/donatur";
 import DonasiPribadi from "layouts/donatur/donasiPribadi";
 import PengajuanPengeluaran from "layouts/pengajuanPengeluaran/PengajuanForm";
-
-// import Pengeluaran from "layouts/pengeluaran";
-// import LaporanKeuangan from "layouts/laporanKeuangan";
 import Doa from "layouts/doa/index";
-import Notifications from "layouts/notifications";
+import Kategori from "layouts/kategori";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
@@ -120,10 +117,11 @@ const routes = [
     type: "collapse",
     name: "Laporan Keuangan",
     key: "laporan-keuangan",
-    icon: <Icon fontSize="small">attach_money</Icon>,
+    icon: <Icon fontSize="small">bar_chart</Icon>,
     route: "/laporan-keuangan",
     component: <LaporanDonasi />,
   },
+
   {
     type: "collapse",
     name: "Profile",
@@ -172,14 +170,6 @@ const routes = [
     route: "/pengajuan-pengeluaran",
     component: <PengajuanPengeluaran />,
   },
-  // {
-  //   type: "collapse",
-  //   name: "Laporan Keuangan",
-  //   key: "laporan-keuangan",
-  //   icon: <Icon fontSize="small">assessment</Icon>,
-  //   route: "/laporan-keuangan",
-  //   component: <LaporanKeuangan />,
-  // },
   {
     type: "collapse",
     name: "Doa",
@@ -187,6 +177,14 @@ const routes = [
     icon: <Icon fontSize="small">favorite</Icon>,
     route: "/doa",
     component: <Doa />,
+  },
+  {
+    type: "collapse",
+    name: "Kategori",
+    key: "kategori",
+    icon: <Icon fontSize="small">local_offer</Icon>,
+    route: "/kategori",
+    component: <Kategori />,
   },
 ];
 

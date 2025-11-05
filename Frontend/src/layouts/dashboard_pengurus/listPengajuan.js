@@ -506,7 +506,7 @@ const ListPengajuan = () => {
                         borderRadius: 1,
                       }}
                     >
-                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>No</MDBox>
+                      <MDBox sx={{ flex: 0.25, padding: "8px 16px", fontWeight: "bold" }}>No</MDBox>
                       <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
                         Tanggal Pengajuan
                       </MDBox>
@@ -563,9 +563,13 @@ const ListPengajuan = () => {
                               }}
                               key={pengajuan.id_pengajuan}
                             >
-                              <MDBox sx={{ flex: 1 }}>{index + 1}</MDBox>
+                              <MDBox sx={{ flex: 0.5 }}>{index + 1}</MDBox>
                               <MDBox sx={{ flex: 1 }}>
-                                {new Date(pengajuan.tanggal).toLocaleDateString()}
+                                {new Intl.DateTimeFormat("id-ID", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                }).format(new Date(pengajuan.tanggal))}
                               </MDBox>
                               <MDBox sx={{ flex: 1 }}>
                                 Rp {Number(pengajuan.nominal_pengajuan).toLocaleString("id-ID")}
@@ -839,30 +843,48 @@ const ListPengajuan = () => {
                         </MDBox>
                       )}
                     </MDBox>
+                    <MDTypography
+                      variant="h6"
+                      sx={{
+                        fontWeight: "bold",
+                        marginTop: 1,
+                        color: "#3f51b5",
+                        // marginBottom: 1,
+                      }}
+                    >
+                      Pengeluaran Aktual
+                    </MDTypography>
 
+                    <MDTypography variant="body2" color="text.secondary" sx={{ fontSize: "16px" }}>
+                      {selectedPengajuan?.pengeluaran_actual
+                        ? `Rp ${Number(selectedPengajuan.pengeluaran_actual).toLocaleString(
+                            "id-ID"
+                          )}`
+                        : "Tidak ada keterangan tersedia."}
+                    </MDTypography>
                     {/* Keterangan */}
                     <MDTypography
                       variant="h6"
                       sx={{
                         fontWeight: "bold",
-                        marginTop: 3,
+                        marginTop: 1,
                         color: "#3f51b5",
-                        marginBottom: 3,
+                        // marginBottom: 1,
                       }}
                     >
-                      Keterangan
+                      Catatan
                     </MDTypography>
 
                     <MDTypography variant="body2" color="text.secondary" sx={{ fontSize: "16px" }}>
-                      {selectedPengajuan?.deskripsi || "Tidak ada keterangan tersedia."}
+                      {selectedPengajuan?.deskripsi || "Tidak ada Catatan tersedia."}
                     </MDTypography>
                     <MDTypography
                       variant="h6"
                       sx={{
                         fontWeight: "bold",
-                        marginTop: 3,
+                        marginTop: 1,
                         color: "#3f51b5",
-                        marginBottom: 3,
+                        // marginBottom: 1,
                       }}
                     >
                       Status Bukti Pengeluaran
@@ -1060,11 +1082,11 @@ const ListPengajuan = () => {
               placeholder="0"
               disabled
             />
-            <Typography variant="h6" sx={{ color: "#3f51b5", fontWeight: "bold", marginTop: 3 }}>
-              Deskripsi
+            <Typography variant="h6" sx={{ color: "#3f51b5", fontWeight: "bold" }}>
+              Catatan untuk Bendahara
             </Typography>
             <TextField
-              label="Deskripsi"
+              label="Catatan untuk Bendahara"
               multiline
               rows={4}
               fullWidth

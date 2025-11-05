@@ -1,18 +1,3 @@
-/**
-=========================================================
-* Donasi Application React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
 import { useState } from "react";
 
 // @mui material components
@@ -29,7 +14,7 @@ import MDTypography from "components/MDTypography";
 import DataTable from "examples/Tables/DataTable";
 
 // Data
-import data from "layouts/dashboard_donatur/components/Projects/data";
+import data from "layouts/dashboard_pengurus/components/Projects/data";
 
 function Projects() {
   const { columns, rows } = data();
@@ -53,9 +38,9 @@ function Projects() {
       open={Boolean(menu)}
       onClose={closeMenu}
     >
-      <MenuItem onClick={closeMenu}>Action</MenuItem>
-      <MenuItem onClick={closeMenu}>Another action</MenuItem>
-      <MenuItem onClick={closeMenu}>Something else</MenuItem>
+      <MenuItem onClick={closeMenu}>Lihat Kegiatan</MenuItem>
+      <MenuItem onClick={closeMenu}>Tambahkan Kegiatan</MenuItem>
+      <MenuItem onClick={closeMenu}>Laporan</MenuItem>
     </Menu>
   );
 
@@ -64,20 +49,12 @@ function Projects() {
       <MDBox display="flex" justifyContent="space-between" alignItems="center" p={3}>
         <MDBox>
           <MDTypography variant="h6" gutterBottom>
-            Projects
+            Daftar Kegiatan Pesantren
           </MDTypography>
           <MDBox display="flex" alignItems="center" lineHeight={0}>
-            <Icon
-              sx={{
-                fontWeight: "bold",
-                color: ({ palette: { info } }) => info.main,
-                mt: -0.5,
-              }}
-            >
-              done
-            </Icon>
+            <Icon sx={{ fontWeight: "bold", color: "#388E3C", mt: -0.5 }}>book</Icon>
             <MDTypography variant="button" fontWeight="regular" color="text">
-              &nbsp;<strong>30 done</strong> this month
+              &nbsp;<strong>30 kegiatan</strong> bulan ini
             </MDTypography>
           </MDBox>
         </MDBox>

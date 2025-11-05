@@ -34,7 +34,7 @@ function Donatur() {
   const [page, setPage] = useState(0); // Pagination
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filteredData, setFilteredData] = useState([]);
-
+  const [loadingReminder, setLoadingReminder] = useState(false);
   // State untuk pop up konfirmasi
   const [openConfirm, setOpenConfirm] = useState(false);
   const [pendingStatusId, setPendingStatusId] = useState(null);
@@ -130,12 +130,15 @@ function Donatur() {
   };
 
   const handleSendReminderToAll = async () => {
+    setLoadingReminder(true); // Menandakan bahwa pengiriman sedang berlangsung
     try {
       const response = await axios.post("http://localhost:3000/api/donatur/sendReminderAll");
       alert(response.data.message); // Menampilkan pesan sukses
     } catch (error) {
       console.error("Error sending reminder:", error);
       alert("Terjadi kesalahan saat mengirim pengingat.");
+    } finally {
+      setLoadingReminder(false); // Menyelesaikan proses dan menonaktifkan loading
     }
   };
 
@@ -153,7 +156,6 @@ function Donatur() {
         p={2}
         boxShadow={3}
       ></MDBox>
-
       <Card
         sx={{
           padding: 4,
@@ -255,8 +257,18 @@ function Donatur() {
         </Grid>
         {/* ignore prettier */}
         {/* Row 2: Tombol di kiri (sejajar bawah Nama Donatur) */}
-        <Grid container spacing={2} sx={{ pl: { xs: 0, sm: 2 }, mt: 1, mb: 3 }}>
-          <Grid item>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            pl: { xs: 0, sm: 2 },
+            mt: 1,
+            mb: 3,
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Grid item sx={{ display: "flex", gap: 2 }}>
             <Button
               variant="contained"
               sx={{
@@ -276,8 +288,6 @@ function Donatur() {
             >
               Search
             </Button>
-          </Grid>
-          <Grid item>
             <Button
               variant="outlined"
               color="secondary"
@@ -299,8 +309,7 @@ function Donatur() {
               Clear
             </Button>
           </Grid>
-          {/* Tombol Kirim Pengingat untuk Semua Donatur Tetap */}
-          <Grid item>
+          <Grid item sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
             <Button
               variant="contained"
               sx={{
@@ -315,10 +324,13 @@ function Donatur() {
                 "&:hover": {
                   backgroundColor: "#388e3c", // Warna tombol saat hover
                 },
+                cursor: loading ? "not-allowed" : "pointer", // Disable cursor if loading
               }}
               onClick={handleSendReminderToAll}
+              disabled={loadingReminder} // Disable the button while loading
             >
-              Kirim Pengingat
+              {loadingReminder ? "Mengirim..." : "Kirim Pengingat"}{" "}
+              {/* Show loading text if loading */}
             </Button>
           </Grid>
         </Grid>
@@ -350,13 +362,13 @@ function Donatur() {
               boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
             }}
           >
-            <MDBox sx={{ flex: 1, padding: "8px 16px" }}>No</MDBox>
+            <MDBox sx={{ flex: 0.25, padding: "8px 16px" }}>No</MDBox>
             <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Nama</MDBox>
             <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Email</MDBox>
             <MDBox sx={{ flex: 1, padding: "8px 16px" }}>No Telepon</MDBox>
             <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Jenis Donatur</MDBox>
             <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Status</MDBox>
-            <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Aksi</MDBox>
+            <MDBox sx={{ flex: 1, padding: "8px 16px" }}>Alamat</MDBox>
           </MDBox>
 
           {filteredData.length > 0 ? (
@@ -382,7 +394,7 @@ function Donatur() {
                         },
                       }}
                     >
-                      <MDBox sx={{ flex: 1 }}>{index + 1}</MDBox>
+                      <MDBox sx={{ flex: 0.5 }}>{index + 1}</MDBox>
                       <MDBox sx={{ flex: 1, padding: "8px 16px" }}>{donatur.nama}</MDBox>
                       <MDBox sx={{ flex: 1, padding: "8px 16px" }}>{donatur.email}</MDBox>
                       <MDBox sx={{ flex: 1, padding: "8px 16px" }}>{donatur.no_telepon}</MDBox>
@@ -390,16 +402,7 @@ function Donatur() {
                       <MDBox sx={{ flex: 1, padding: "8px 16px" }}>
                         {donatur.status_aktif ? "Aktif" : "Non-Aktif"}
                       </MDBox>
-                      <MDBox sx={{ flex: 1, padding: "8px 16px" }}>
-                        <IconButton
-                          onClick={() =>
-                            handleStatusChange(donatur.id_donatur, donatur.status_aktif)
-                          }
-                          color="primary"
-                        >
-                          {donatur.status_aktif ? <ToggleOn /> : <ToggleOff />}
-                        </IconButton>
-                      </MDBox>
+                      <MDBox sx={{ flex: 1, padding: "8px 16px" }}>{donatur.alamat}</MDBox>
                     </MDBox>
                   </>
                 );
@@ -425,61 +428,6 @@ function Donatur() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-        {/* Dialog Konfirmasi Status Aktif */}
-        <Dialog open={openConfirm} onClose={handleCancelStatusChange}>
-          <DialogTitle>Konfirmasi Ubah Status Donatur</DialogTitle>
-          <DialogContent>
-            <Typography>
-              Apakah Anda yakin ingin {pendingStatusValue ? "mengaktifkan" : "menonaktifkan"}{" "}
-              donatur ini?
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={handleCancelStatusChange}
-              color="secondary"
-              variant="outlined"
-              sx={{
-                padding: "12px 32px",
-                minWidth: 100,
-                fontSize: "0.95rem",
-                fontWeight: "600",
-                borderRadius: "8px",
-                color: "#303f9f",
-                borderColor: "#303f9f",
-                textTransform: "none",
-                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                "&:hover": {
-                  backgroundColor: "#303f9f",
-                  color: "#fff",
-                },
-              }}
-            >
-              Tidak
-            </Button>
-            <Button
-              onClick={handleConfirmStatusChange}
-              color="secondary"
-              variant="outlined"
-              sx={{
-                padding: "12px 32px",
-                minWidth: 100,
-                borderRadius: "8px", // Lebih bulat
-                fontWeight: "600",
-                borderColor: "#ff4081",
-                color: "#ff4081",
-                textTransform: "none",
-                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                "&:hover": {
-                  backgroundColor: "#ff4081", // Warna latar belakang saat hover
-                  color: "#fff",
-                },
-              }}
-            >
-              Ya
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Card>
     </DashboardLayout>
   );

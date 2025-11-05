@@ -32,4 +32,4 @@ const Doa = {
   },
 };
 
-export default Doa;
+export default Doa; 

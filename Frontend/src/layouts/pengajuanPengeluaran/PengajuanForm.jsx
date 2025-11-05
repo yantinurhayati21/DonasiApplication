@@ -24,6 +24,11 @@ import { InfoOutlined, CheckCircleOutline } from "@mui/icons-material";
 import { AddCircleOutline, RemoveCircleOutline } from "@mui/icons-material";
 import axios from "axios";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
+// Format number to currency: Rp 10.000
+function formatRupiah(num) {
+  if (isNaN(num)) return "";
+  return "Rp " + num.toLocaleString("id-ID");
+}
 
 const PengajuanForm = () => {
   const [tanggal, setTanggal] = useState("");
@@ -34,6 +39,7 @@ const PengajuanForm = () => {
   const [kategoriOptions, setKategoriOptions] = useState([]);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  // ...existing code...
 
   // State untuk dialog konfirmasi dan sukses
   const [openConfirm, setOpenConfirm] = useState(false);
@@ -173,9 +179,9 @@ const PengajuanForm = () => {
                 </Typography>
                 <TextField
                   label="Nominal Pengajuan"
-                  type="number"
+                  type="text"
                   fullWidth
-                  value={nominalPengajuan}
+                  value={formatRupiah(nominalPengajuan)}
                   InputProps={{ readOnly: true }}
                   required
                   sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
@@ -249,14 +255,16 @@ const PengajuanForm = () => {
                     </Typography>
                     <TextField
                       label="Total Harga"
-                      type="number"
-                      value={item.total_harga}
-                      onChange={(e) =>
-                        handlePengeluaranChange(index, "total_harga", e.target.value)
-                      }
+                      type="text"
+                      value={item.total_harga ? formatRupiah(Number(item.total_harga)) : ""}
+                      onChange={(e) => {
+                        // Ambil angka mentah, update state, tampilkan format
+                        const raw = e.target.value.replace(/[^\d]/g, "");
+                        handlePengeluaranChange(index, "total_harga", raw);
+                      }}
                       fullWidth
                       required
-                      inputProps={{ min: 1 }}
+                      inputProps={{ min: 1, inputMode: "numeric" }}
                       sx={{ backgroundColor: "#f9f9f9", borderRadius: 1 }}
                     />
                   </Grid>
@@ -307,6 +315,7 @@ const PengajuanForm = () => {
               type="submit"
               fullWidth
               sx={{
+                color: "#fff",
                 padding: "12px",
                 fontWeight: "bold",
                 borderRadius: 1,
@@ -339,10 +348,20 @@ const PengajuanForm = () => {
                 </Typography>
               </DialogContent>
               <DialogActions>
-                <Button onClick={() => setOpenConfirm(false)} color="secondary" variant="outlined">
+                <Button
+                  onClick={() => setOpenConfirm(false)}
+                  color="secondary"
+                  variant="outlined"
+                  sx={{ color: "#333" }} // Mengatur warna tulisan menjadi hitam
+                >
                   Batal
                 </Button>
-                <Button onClick={handleConfirmSubmit} color="primary" variant="contained">
+                <Button
+                  onClick={handleConfirmSubmit}
+                  color="primary"
+                  variant="contained"
+                  sx={{ color: "#fff" }} // Mengatur warna tulisan menjadi putih
+                >
                   Ya, Kirim
                 </Button>
               </DialogActions>

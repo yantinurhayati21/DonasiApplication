@@ -8,11 +8,12 @@ import {
   Button,
   TablePagination,
   Dialog,
+  IconButton,
 } from "@mui/material";
 import axios from "axios";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import MDBox from "components/MDBox";
-
+import CloseIcon from "@mui/icons-material/Close";
 function DonasiPribadi() {
   const [donasiList, setDonasiList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
@@ -99,12 +100,44 @@ function DonasiPribadi() {
         {/* Buttons */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item>
-            <Button variant="contained" onClick={handleFilter}>
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "#90caf9",
+                color: "#fff",
+                padding: "10px 32px",
+                minWidth: 140,
+                fontSize: "0.95rem",
+                fontWeight: "bold",
+                borderRadius: "8px",
+                textTransform: "none",
+                "&:hover": {
+                  backgroundColor: "#64b5f6",
+                },
+              }}
+              onClick={handleFilter}
+            >
               Search
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="outlined" onClick={handleClear}>
+            <Button
+              variant="outlined"
+              sx={{
+                padding: "10px 32px",
+                color: "#666",
+                minWidth: 140,
+                fontSize: "0.95rem",
+                fontWeight: "bold",
+                borderRadius: "8px",
+                textTransform: "none",
+                borderColor: "#aaa",
+                "&:hover": {
+                  borderColor: "#666",
+                },
+              }}
+              onClick={handleClear}
+            >
               Clear
             </Button>
           </Grid>
@@ -122,6 +155,7 @@ function DonasiPribadi() {
                   backgroundColor: "#f1f1f1",
                   padding: "12px",
                   borderRadius: 1,
+                  fontWeight: "bold",
                 }}
               >
                 <MDBox sx={{ flex: 1.5 }}>Kode Transaksi</MDBox>
@@ -210,65 +244,96 @@ function DonasiPribadi() {
             />
 
             {/* Dialog Doa */}
-            <Dialog
-              open={openDoaDialog}
-              onClose={() => setOpenDoaDialog(false)}
-              maxWidth="sm"
-              fullWidth
-              PaperProps={{
-                sx: {
-                  borderRadius: 4,
-                  background: "linear-gradient(135deg, #e3f2fd 0%, #fff 100%)",
-                  boxShadow: "0 8px 32px rgba(100,181,246,0.18)",
-                },
-              }}
-            >
-              <Box sx={{ p: 4, textAlign: "center" }}>
-                <Typography variant="h6" fontWeight="bold" color="primary" gutterBottom>
-                  Detail Doa
-                </Typography>
-                <Box
-                  sx={{
-                    mt: 2,
-                    mb: 2,
-                    p: 2,
-                    background: "#f5faff",
-                    borderRadius: 2,
-                    boxShadow: "0 2px 8px rgba(100,181,246,0.08)",
-                  }}
-                >
-                  <Typography variant="subtitle1" fontWeight="bold" color="secondary" gutterBottom>
-                    List Doa Pilihan:
+            {/* Pop up dialog untuk detail doa */}
+            <Box>
+              <Dialog
+                open={openDoaDialog}
+                onClose={() => setOpenDoaDialog(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                  sx: {
+                    borderRadius: 4,
+                    background: "linear-gradient(135deg, #e3f2fd 0%, #fff 100%)",
+                    boxShadow: "0 8px 32px rgba(100,181,246,0.18)",
+                    position: "relative", // Posisi relative untuk penempatan ikon
+                  },
+                }}
+              >
+                <Box sx={{ p: 4, textAlign: "left" }}>
+                  <Typography variant="h6" fontWeight="bold" fontSize={24} gutterBottom>
+                    Detail Doa
                   </Typography>
-                  <Typography variant="body1" sx={{ mb: 2 }}>
-                    {selectedDoa.list_doa || "-"}
-                  </Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" color="secondary" gutterBottom>
-                    Doa Khusus:
-                  </Typography>
-                  <Typography variant="body1">{selectedDoa.doa_spesific || "-"}</Typography>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      mb: 2,
+                      p: 2,
+                      background: "#f5faff",
+                      borderRadius: 2,
+                      boxShadow: "0 2px 8px rgba(100,181,246,0.08)",
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      color="secondary"
+                      gutterBottom
+                    >
+                      List Doa Pilihan:
+                    </Typography>
+                    {/* Menampilkan list doa */}
+                    <Box sx={{ mb: 2 }}>
+                      {selectedDoa.list_doa ? (
+                        <ul style={{ paddingLeft: "20px", margin: 0 }}>
+                          {selectedDoa.list_doa.split(",").map((doa, index) => (
+                            <li key={index} style={{ marginBottom: "8px" }}>
+                              <Typography variant="body1" color="textPrimary">
+                                {doa.trim()}
+                              </Typography>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <Typography variant="body1" color="textPrimary">
+                          -
+                        </Typography>
+                      )}
+                    </Box>
+
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      color="secondary"
+                      gutterBottom
+                    >
+                      Doa Khusus:
+                    </Typography>
+                    <Typography variant="body1" color="textPrimary">
+                      {selectedDoa.doa_spesific || "-"}
+                    </Typography>
+                  </Box>
+
+                  {/* Ikon Close di kanan atas */}
+                  <IconButton
+                    sx={{
+                      position: "absolute", // Posisi absolute untuk menempatkan ikon di sudut kanan atas
+                      top: 16, // Jarak dari atas
+                      right: 16, // Jarak dari kanan
+                      color: "#64b5f6",
+                      fontSize: "24px",
+                      "&:hover": {
+                        background: "transparent",
+                        color: "#42a5f5",
+                      },
+                    }}
+                    onClick={() => setOpenDoaDialog(false)}
+                  >
+                    <CloseIcon />
+                  </IconButton>
                 </Box>
-                <Button
-                  variant="contained"
-                  sx={{
-                    mt: 2,
-                    background: "linear-gradient(90deg, #64b5f6 0%, #90caf9 100%)",
-                    color: "#fff",
-                    fontWeight: "bold",
-                    borderRadius: "8px",
-                    textTransform: "none",
-                    boxShadow: "0 2px 8px rgba(100,181,246,0.15)",
-                    transition: "0.2s",
-                    "&:hover": {
-                      background: "linear-gradient(90deg, #42a5f5 0%, #64b5f6 100%)",
-                    },
-                  }}
-                  onClick={() => setOpenDoaDialog(false)}
-                >
-                  Tutup
-                </Button>
-              </Box>
-            </Dialog>
+              </Dialog>
+            </Box>
           </>
         )}
       </Card>

@@ -83,18 +83,18 @@ const Dashboard = () => {
             underline="none"
             sx={{
               fontWeight: "bold",
-              color: "#ffffff", // Warna teks putih
+              color: "#ffffff", // Teks putih
               fontSize: "1.1rem",
               textTransform: "uppercase",
               letterSpacing: "0.5px",
               px: 2.5,
               py: 1,
-              bgcolor: "#FF7043", // Oranye hanya di sekitar tulisan
+              bgcolor: "#64B5F6", // Biru muda
               borderRadius: "15px",
               transition: "background-color 0.3s, transform 0.2s",
               "&:hover": {
-                bgcolor: "#F4511E", // Warna hover lebih gelap
-                transform: "scale(1.05)", // Sedikit efek zoom saat hover
+                bgcolor: "#42A5F5", // Biru hover sedikit lebih gelap
+                transform: "scale(1.05)",
               },
             }}
           >
@@ -156,7 +156,7 @@ const Dashboard = () => {
             variant="contained"
             size="large"
             sx={{
-              backgroundColor: "#ff7043",
+              backgroundColor: "#64B5F6", // Biru muda
               color: "#fff",
               borderRadius: "8px",
               px: 5,
@@ -164,7 +164,7 @@ const Dashboard = () => {
               fontWeight: "bold",
               fontSize: "1.1rem",
               ":hover": {
-                backgroundColor: "#ff5722",
+                backgroundColor: "#42A5F5", // Biru sedikit lebih gelap untuk hover
               },
             }}
             href="/donasi"
@@ -177,7 +177,7 @@ const Dashboard = () => {
       {/* Profil Pesantren */}
       <Box sx={{ bgcolor: "white", py: 8 }}>
         <Container maxWidth="md">
-          <Typography variant="h4" color="primary" textAlign="center" mb={4} fontWeight="medium">
+          <Typography variant="h4" color="#2397f5ff" textAlign="center" mb={4} fontWeight="medium">
             Profil Pesantren
           </Typography>
           <Typography variant="body1" color="text.secondary" textAlign="justify" mb={3}>
@@ -203,7 +203,7 @@ const Dashboard = () => {
               variant="contained"
               size="large"
               sx={{
-                backgroundColor: "#ff7043",
+                backgroundColor: "#64B5F6", // Biru muda
                 color: "#fff",
                 borderRadius: "8px",
                 px: 5,
@@ -211,7 +211,7 @@ const Dashboard = () => {
                 fontWeight: "bold",
                 fontSize: "1.1rem",
                 ":hover": {
-                  backgroundColor: "#ff5722",
+                  backgroundColor: "#42A5F5", // Biru sedikit lebih gelap saat hover
                 },
               }}
               href="/authentication/sign-up"
@@ -225,7 +225,7 @@ const Dashboard = () => {
       {/* Kegiatan Pesantren with images */}
       <Box sx={{ bgcolor: "#e3f2fd", py: 8 }}>
         <Container maxWidth="lg">
-          <Typography variant="h4" color="primary" textAlign="center" mb={5} fontWeight="medium">
+          <Typography variant="h4" color="#2397f5ff" textAlign="center" mb={5} fontWeight="medium">
             Kegiatan-Kegiatan Pesantren
           </Typography>
           <Slider {...carouselSettings}>

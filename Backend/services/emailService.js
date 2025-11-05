@@ -8,28 +8,29 @@ dotenv.config();
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,  // Ambil email pengirim dari variabel lingkungan
-    pass: process.env.EMAIL_PASS,  // Ambil password dari variabel lingkungan
+    user: process.env.EMAIL_USER, // Ambil email pengirim dari variabel lingkungan
+    pass: process.env.EMAIL_PASS, // Ambil password dari variabel lingkungan
   },
 });
 
-// Fungsi untuk mengirim email
-const sendEmail = (recipientEmail, subject, text) => {
+// Fungsi untuk mengirim email dalam format HTML
+const sendEmail = (recipientEmail, subject, htmlContent) => {
   // Mengatur opsi email yang akan dikirim
   const mailOptions = {
     from: process.env.EMAIL_USER, // Email pengirim
-    to: recipientEmail, // Email penerima
-    subject: subject, // Subjek email
-    text: text, // Isi email
+    to: recipientEmail,           // Email penerima
+    subject: subject,             // Subjek email
+    html: htmlContent,            // Konten email dalam format HTML
   };
 
   // Mengirim email menggunakan transporter
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('Error sending email:', error); // Menampilkan error jika gagal mengirim
-    } else {
-      console.log('Email sent: ' + info.response); // Menampilkan pesan sukses jika email terkirim
-    }
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return reject(error); // Menangani error pengiriman email
+      }
+      resolve(info); // Jika email terkirim, return info
+    });
   });
 };
 

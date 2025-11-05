@@ -10,7 +10,7 @@ const Donatur = {
 
   getAll: async () => {
     const result = await pool.query(
-      "SELECT * FROM donatur ORDER BY created_at DESC"
+      "SELECT d.* FROM donatur d JOIN (SELECT email, MAX(created_at) AS latest FROM donatur GROUP BY email) x ON d.email = x.email AND d.created_at = x.latest ORDER BY d.created_at DESC;"
     );
     return result.rows;
   },

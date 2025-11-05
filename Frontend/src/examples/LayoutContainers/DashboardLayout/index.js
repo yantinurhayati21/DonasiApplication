@@ -30,10 +30,14 @@ function DashboardLayout({ children }) {
   const { miniSidenav } = controller;
   const { pathname } = useLocation();
 
+  // 🔒 Cek token
+  const token = localStorage.getItem("token");
   useEffect(() => {
     setLayout(dispatch, "dashboard");
   }, [pathname]);
-
+  if (!token) {
+    return <>{children}</>;
+  }
   return (
     <MDBox
       sx={({ breakpoints, transitions, functions: { pxToRem } }) => ({

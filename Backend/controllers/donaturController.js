@@ -90,13 +90,15 @@ export const updateDonatur = async (req, res) => {
 
 export const updateDonaturStatus = async (req, res) => {
   try {
-    const { status_aktif } = req.body;  // Mengambil status_aktif dari body request
+    const { status_aktif } = req.body; // Mengambil status_aktif dari body request
     const { id } = req.params; // Mengambil id_donatur dari parameter URL
-     // Log untuk memastikan status_aktif yang diterima
+    // Log untuk memastikan status_aktif yang diterima
     console.log("Received status_aktif:", status_aktif);
     // Pastikan status_aktif adalah boolean (true/false)
     if (typeof status_aktif !== "boolean") {
-      return res.status(400).json({ message: "status_aktif harus berupa boolean." });
+      return res
+        .status(400)
+        .json({ message: "status_aktif harus berupa boolean." });
     }
 
     // Memanggil fungsi updateStatus pada model Donatur
@@ -116,28 +118,48 @@ export const updateDonaturStatus = async (req, res) => {
 // Fungsi untuk mengirim email pengingat ke semua donatur tetap
 export const sendReminderToAllDonaturTetap = async (req, res) => {
   try {
-    // Ambil semua donatur tetap yang aktif
     const donaturList = await Donatur.getAllTetapAktif(); // Memanggil getAll() untuk mengambil donatur tetap yang aktif
-    // return;
-    // Jika tidak ada donatur
+
     if (donaturList.length === 0) {
-      return res.status(404).json({ message: 'Tidak ada donatur tetap yang aktif' });
+      return res.status(404).json({ message: "Tidak ada donatur tetap yang aktif" });
     }
 
     // Kirim email pengingat untuk setiap donatur yang aktif dan jenis donatur 'Tetap'
-    for (let donatur of donaturList) {
-      await sendEmail(
-        donatur.email, // Email penerima
-        'Pengingat Donasi Bulanan',
-        `Halo ${donatur.nama}, ini adalah pengingat untuk donasi bulan ini. Terima kasih atas dukungan Anda!`
-      );
+    const emailPromises = donaturList.map(async (donatur) => {
+      // Membuat konten email dengan HTML yang lebih menarik
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f4f7f6; padding: 20px;">
+          <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);">
+            <h2 style="color: #2C6F89;">Halo ${donatur.nama},</h2>
+            <p style="color: #555; font-size: 16px;">
+              Ini adalah pengingat untuk donasi bulan ini. Terima kasih atas dukungan Anda yang luar biasa!
+            </p>
+            <p style="color: #555; font-size: 16px;">
+              Kami sangat menghargai kontribusi Anda, dan bersama-sama kita membuat perbedaan yang besar!
+            </p>
+            <a href="http://localhost:3001/authentication/sign-in" style="background-color: #4CAF50; color: #fff; padding: 12px 24px; font-size: 18px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px;">Masuk ke Aplikasi Donasi</a>
+            <p style="color: #555; font-size: 14px; margin-top: 20px;">
+              Jika Anda memiliki pertanyaan atau membutuhkan bantuan, silakan hubungi kami di <a href="mailto:support@donasi.com">support@donasi.com</a>.
+            </p>
+          </div>
+        </div>
+      `;
+
+      // Kirim email pengingat dengan konten HTML
+      await sendEmail(donatur.email, "Pengingat Donasi Bulanan", htmlContent);
 
       // Perbarui kolom last_reminder_sent setelah email dikirim
       await Donatur.updateReminderSentDate(donatur.id_donatur);
-    }
+    });
 
-    res.status(200).json({ message: 'Pengingat berhasil dikirim ke semua donatur tetap yang aktif.' });
+    // Tunggu semua email terkirim secara paralel
+    await Promise.all(emailPromises);
+
+    res.status(200).json({ message: "Pengingat berhasil dikirim ke semua donatur tetap yang aktif." });
   } catch (error) {
-    res.status(500).json({ message: 'Terjadi kesalahan saat mengirim pengingat', error: error.message });
+    console.error("Error sending email:", error);
+    res.status(500).json({ message: "Terjadi kesalahan saat mengirim pengingat", error: error.message });
   }
 };
+
+

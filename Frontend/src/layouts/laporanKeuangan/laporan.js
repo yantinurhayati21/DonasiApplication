@@ -65,24 +65,6 @@ const LaporanDonasi = () => {
 
   const formatRupiah = (value, prefix = "") => `${prefix}Rp ${value.toLocaleString("id-ID")}`;
 
-  const handleDownloadPDF = () => {
-    const input = document.getElementById("laporan-keuangan-pdf");
-    if (!input) return;
-
-    setTimeout(() => {
-      html2canvas(input, { scale: 2 }).then((canvas) => {
-        if (canvas.width === 0 || canvas.height === 0) return;
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4");
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save("laporan-keuangan.pdf");
-      });
-    }, 100);
-  };
-
   return (
     <DashboardLayout>
       <Container maxWidth="md">
@@ -117,22 +99,17 @@ const LaporanDonasi = () => {
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Button
                   variant="contained"
-                  color="primary"
                   onClick={handleSearch}
-                  sx={{ borderRadius: 2, px: 4, py: 1.5 }}
+                  sx={{
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1.5,
+                    color: "white !important", // Ensure the color stays white
+                    backgroundColor: "#1976d2",
+                  }}
                 >
                   Cari Laporan
                 </Button>
-                {laporan && (
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={handleDownloadPDF}
-                    sx={{ borderRadius: 2, px: 4, py: 1.5 }}
-                  >
-                    Download PDF
-                  </Button>
-                )}
               </Box>
               {loading && (
                 <Box sx={{ mt: 3, textAlign: "center" }}>

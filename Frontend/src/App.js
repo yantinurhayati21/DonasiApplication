@@ -74,6 +74,7 @@ export default function App() {
   const { pathname } = useLocation();
   const role = localStorage.getItem("role");
   const [routerList, setRouterList] = useState(routes);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (!role) {
@@ -84,7 +85,6 @@ export default function App() {
             route.key === "dashboard" ||
             route.key === "donasi" ||
             route.key === "sign-in" ||
-            route.key === "sign-up" ||
             route.key === "paymentGateway"
         )
       );
@@ -111,7 +111,8 @@ export default function App() {
           (route) =>
             route.key === "dashboard_bendahara" ||
             route.key === "list_pengajuan_bendahara" ||
-            route.key === "riwayat-donasi"
+            route.key === "riwayat-donasi" ||
+            route.key === "laporan-keuangan"
         );
         break;
 
@@ -132,7 +133,8 @@ export default function App() {
             route.key === "donatur" ||
             route.key === "list_pengajuan" ||
             route.key === "pengajuan-pengeluaran" ||
-            route.key === "doa"
+            route.key === "doa" ||
+            route.key === "kategori"
         );
         break;
 
@@ -220,7 +222,7 @@ export default function App() {
     <CacheProvider value={rtlCache}>
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
-        {layout === "dashboard" && location.pathname !== "/dashboard" && (
+        {layout === "dashboard" && location.pathname !== "/dashboard" && token && (
           <>
             <Sidenav
               color={sidenavColor}
@@ -234,6 +236,7 @@ export default function App() {
             {configsButton}
           </>
         )}
+
         {layout === "vr" && <Configurator />}
         <Routes>
           {getRoutes(routerList)}

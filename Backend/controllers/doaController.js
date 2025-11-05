@@ -4,7 +4,7 @@ export const getAllDoa = async (req, res) => {
   try {
     const doa = await Doa.getAll();
     res.json(doa);
-  } catch (err) {
+  } catch (err) { 
     res.status(500).json({ error: err.message });
   }
 };

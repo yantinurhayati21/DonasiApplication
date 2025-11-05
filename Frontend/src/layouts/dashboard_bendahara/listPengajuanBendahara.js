@@ -41,6 +41,7 @@ import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import { CheckCircleOutline, CancelOutlined } from "@mui/icons-material";
+
 const ListPengajuanBendahara = () => {
   const [notifikasi, setNotifikasi] = useState([]);
   const [infoSB, setInfoSB] = useState(false);
@@ -281,9 +282,9 @@ const ListPengajuanBendahara = () => {
       <Container sx={{ pb: 6 }} maxWidth="xl">
         {/* Your top content */}
         <MDBox sx={{ pt: 2, pb: 2, textAlign: "center" }}>
-          <Badge badgeContent={notifikasi.length} color="error" sx={{ mb: 1 }}>
+          {/* <Badge badgeContent={notifikasi.length} color="error" sx={{ mb: 1 }}>
             <NotificationsIcon fontSize="large" />
-          </Badge>
+          </Badge> */}
         </MDBox>
 
         <Grid container spacing={2} alignItems="center" sx={{ marginBottom: 2 }}>
@@ -402,7 +403,7 @@ const ListPengajuanBendahara = () => {
         <Grid container spacing={2} sx={{ width: "100%", maxWidth: "100%" }}>
           <Grid item xs={12}>
             <Card sx={{ p: 3, boxShadow: 3, borderRadius: 2, width: "100%" }}>
-              <MDTypography variant="h6" mb={2} sx={{ color: "#3f51b5", fontWeight: "bold" }}>
+              <MDTypography variant="h6" mb={2} sx={{ fontWeight: "bold", fontSize: "1.3rem" }}>
                 Daftar Pengajuan dan Pengeluaran
               </MDTypography>
 
@@ -429,23 +430,22 @@ const ListPengajuanBendahara = () => {
                       }}
                     >
                       <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
+                        sx={{
+                          flex: 0.25,
+                          padding: "8px 16px",
+                          fontWeight: "bold",
+                          textAlign: "left",
+                        }}
                       >
                         No
                       </MDBox>
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
                         Tanggal Pengajuan
                       </MDBox>
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
                         Nominal Pengajuan
                       </MDBox>
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
                         Status Pengajuan
                       </MDBox>
                       {role === "Bendahara" && (
@@ -454,16 +454,13 @@ const ListPengajuanBendahara = () => {
                             flex: 1,
                             padding: "8px 16px",
                             fontWeight: "bold",
-                            color: "#3f51b5",
                           }}
                         >
-                          Status Approval Bendahara
+                          Persetujuan Bendahara
                         </MDBox>
                       )}
-                      <MDBox
-                        sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold", color: "#3f51b5" }}
-                      >
-                        Status Approval Pimpinan
+                      <MDBox sx={{ flex: 1, padding: "8px 16px", fontWeight: "bold" }}>
+                        Persetujuan Pimpinan
                       </MDBox>
                       <MDBox
                         sx={{
@@ -471,7 +468,6 @@ const ListPengajuanBendahara = () => {
                           padding: "8px 16px",
                           textAlign: "center",
                           fontWeight: "bold",
-                          color: "#3f51b5",
                         }}
                       >
                         Detail Pengeluaran
@@ -507,10 +503,15 @@ const ListPengajuanBendahara = () => {
                               }}
                               key={pengajuan.id_pengajuan}
                             >
-                              <MDBox sx={{ flex: 1 }}>{index + 1}</MDBox>
+                              <MDBox sx={{ flex: 0.5 }}>{index + 1}</MDBox>
                               <MDBox sx={{ flex: 1 }}>
-                                {new Date(pengajuan.tanggal).toLocaleDateString()}
+                                {new Intl.DateTimeFormat("id-ID", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                }).format(new Date(pengajuan.tanggal))}
                               </MDBox>
+
                               <MDBox sx={{ flex: 1 }}>
                                 Rp {Number(pengajuan.nominal_pengajuan).toLocaleString("id-ID")}
                               </MDBox>
@@ -532,15 +533,25 @@ const ListPengajuanBendahara = () => {
                                 <MDBox sx={{ flex: 1 }}>
                                   {pengajuan.status_pengajuan === "menunggu_bendahara" ? (
                                     <FormControl fullWidth size="small">
-                                      <InputLabel>Status Approval</InputLabel>
+                                      <InputLabel>Pilih Status</InputLabel>
                                       <Select
-                                        label="Status Approval"
+                                        label="Pilih Status"
                                         value={isCurrentApproval ? selectedApproval.value : ""}
                                         onChange={(e) => {
                                           handleApprovalSelect(
                                             pengajuan.id_pengajuan,
                                             e.target.value
                                           );
+                                        }}
+                                        sx={{
+                                          padding: "6px 5px",
+                                          fontSize: "1rem",
+                                          backgroundColor: "#f4f4f9",
+                                          borderRadius: "7px",
+                                          "& .MuiOutlinedInput-root": {
+                                            borderRadius: "7px",
+                                          },
+                                          width: "120px",
                                         }}
                                       >
                                         <MenuItem value="diterima">Diterima</MenuItem>
@@ -797,17 +808,16 @@ const ListPengajuanBendahara = () => {
                     {/* Jika Ada File Bukti Pengeluaran */}
                     {selectedPengajuan?.file_bukti && (
                       <>
-                        {/* Keterangan */}
                         <MDTypography
                           variant="h6"
                           sx={{
                             fontWeight: "bold",
-                            marginTop: 3,
+                            marginTop: 1,
                             color: "#3f51b5",
-                            marginBottom: 3,
+                            // marginBottom: 1,
                           }}
                         >
-                          Keterangan
+                          Pengeluaran Aktual
                         </MDTypography>
 
                         <MDTypography
@@ -815,15 +825,35 @@ const ListPengajuanBendahara = () => {
                           color="text.secondary"
                           sx={{ fontSize: "16px" }}
                         >
-                          {selectedPengajuan?.deskripsi || "Tidak ada keterangan tersedia."}
+                          {selectedPengajuan?.pengeluaran_actual
+                            ? `Rp ${Number(selectedPengajuan.pengeluaran_actual).toLocaleString(
+                                "id-ID"
+                              )}`
+                            : "Tidak ada keterangan tersedia."}
+                        </MDTypography>
+                        {/* Keterangan */}
+                        <MDTypography
+                          variant="h6"
+                          sx={{
+                            fontWeight: "bold",
+                            color: "#3f51b5",
+                          }}
+                        >
+                          Catatan
+                        </MDTypography>
+
+                        <MDTypography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ fontSize: "16px" }}
+                        >
+                          {selectedPengajuan?.deskripsi || "Tidak ada Catatan tersedia."}
                         </MDTypography>
                         <MDTypography
                           variant="h6"
                           sx={{
                             fontWeight: "bold",
-                            marginTop: 3,
                             color: "#3f51b5",
-                            marginBottom: 3,
                           }}
                         >
                           Status Bukti Pengeluaran
@@ -943,10 +973,20 @@ const ListPengajuanBendahara = () => {
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCancelApproval} color="secondary" variant="outlined">
+            <Button
+              onClick={handleCancelApproval}
+              color="secondary"
+              variant="outlined"
+              sx={{ color: "#333" }} // Mengatur warna tulisan menjadi hitam
+            >
               Batal
             </Button>
-            <Button onClick={handleConfirmApproval} color="primary" variant="contained">
+            <Button
+              onClick={handleConfirmApproval}
+              color="primary"
+              variant="contained"
+              sx={{ color: "#fff" }} // Mengatur warna tulisan menjadi putih
+            >
               Ya
             </Button>
           </DialogActions>
